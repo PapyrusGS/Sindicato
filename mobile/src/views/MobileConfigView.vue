@@ -16,15 +16,15 @@
         </div>
 
         <div class="form-group" style="margin-top: 1rem;">
-          <label class="form-label">Dirección IP del Servidor API (Backend)</label>
+          <label class="form-label">Dirección del Servidor API (Backend)</label>
           <input
             v-model="apiUrl"
             type="text"
             class="form-input font-mono"
-            placeholder="http://192.168.1.50:8000/api"
+            placeholder="https://papserver.site/api"
             @change="guardarApiUrl"
           />
-          <small class="text-muted">Para pruebas en celular por Wi-Fi ingresa la IP local de tu PC.</small>
+          <small class="text-muted">Servidor Propio: https://papserver.site/api o IP: http://181.114.124.70/api</small>
         </div>
       </div>
 

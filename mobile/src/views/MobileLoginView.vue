@@ -41,15 +41,15 @@
         </div>
 
         <div v-if="showServerInput" class="server-input-group">
-          <label class="form-label">IP del Servidor Backend (API)</label>
+          <label class="form-label">Servidor Backend / Dominio (API)</label>
           <input
             v-model="apiUrl"
             type="text"
             class="form-input font-mono"
-            placeholder="http://192.168.1.50:8000/api"
+            placeholder="https://papserver.site/api"
             @change="saveApiUrl"
           />
-          <small class="text-muted">Ejemplo local: http://192.168.1.X:8000/api o emulador: http://10.0.2.2:8000/api</small>
+          <small class="text-muted">Servidor Propio: https://papserver.site/api o IP: http://181.114.124.70/api</small>
         </div>
       </div>
 
