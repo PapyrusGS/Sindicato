@@ -46,7 +46,7 @@
     <div class="app-sidebar__footer">
       <div class="app-sidebar__version">
         <transition name="fade">
-          <span v-if="!collapsed">v1.0.0 — RBAC Active</span>
+          <span v-if="!collapsed">v1.0.0 — Sindicato de Choferes</span>
         </transition>
       </div>
     </div>
@@ -70,67 +70,69 @@ defineEmits(['toggle'])
 const route = useRoute()
 const { hasAnyRole } = useAuth()
 
-// ─── Definición de menú dinámico por rol ──────────────────────────────
 const allMenuItems = [
   {
     name: 'dashboard',
     label: 'Dashboard',
     to: '/dashboard',
-    roles: [], // Todos ven el dashboard
+    roles: [],
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
   },
-  // ─── Módulo Chofer ─────────────────────────────────────────────────
   {
-    name: 'mis-vehiculos',
-    label: 'Mis Vehículos',
-    to: '/dashboard/mis-vehiculos',
-    roles: ['Chofer'],
-    roleBadge: 'Chofer',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><circle cx="8.5" cy="13.5" r="2.5"/><path d="M16 8h4l3 5v4h-3"/></svg>',
+    name: 'afiliados',
+    label: 'Afiliaciones & Personas',
+    to: '/dashboard/afiliados',
+    roles: ['Administrador'],
+    roleBadge: 'Admin',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   },
-  // ─── Módulo Inspector ──────────────────────────────────────────────
   {
     name: 'asistencias',
     label: 'Control Asistencia',
     to: '/dashboard/asistencias',
-    roles: ['Inspector'],
+    roles: ['Inspector', 'Administrador'],
     roleBadge: 'Inspector',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
   },
   {
     name: 'multas',
-    label: 'Registro de Multas',
+    label: 'Sanciones e Infracciones',
     to: '/dashboard/multas',
-    roles: ['Inspector'],
+    roles: ['Inspector', 'Administrador'],
     roleBadge: 'Inspector',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
   },
-  // ─── Módulo Tesorero ───────────────────────────────────────────────
   {
-    name: 'caja-pagos',
-    label: 'Caja & Pagos',
-    to: '/dashboard/caja-pagos',
-    roles: ['Tesorero'],
-    roleBadge: 'Tesorero',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+    name: 'obligaciones',
+    label: 'Obligaciones del Grupo',
+    to: '/dashboard/obligaciones',
+    roles: ['Jefe de Grupo', 'Administrador'],
+    roleBadge: 'Jefe',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
   },
-  // ─── Módulo Jefe de Grupo ──────────────────────────────────────────
   {
-    name: 'mi-grupo',
-    label: 'Gestión de Grupo',
-    to: '/dashboard/mi-grupo',
-    roles: ['Jefe de Grupo'],
-    roleBadge: 'Jefe Grupo',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    name: 'cobros',
+    label: 'Cobros & Historial de Caja',
+    to: '/dashboard/cobros',
+    roles: ['Tesorero', 'Jefe de Grupo', 'Administrador'],
+    roleBadge: 'Caja',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
   },
-  // ─── Módulo Administrador ──────────────────────────────────────────
   {
-    name: 'usuarios-roles',
-    label: 'Usuarios & Roles',
-    to: '/dashboard/usuarios-roles',
-    roles: ['Administrador'],
-    roleBadge: 'Admin',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    name: 'auditoria',
+    label: 'Bitácora & Auditorías',
+    to: '/dashboard/auditoria',
+    roles: ['Jefe de Grupo', 'Inspector', 'Tesorero', 'Administrador'],
+    roleBadge: 'Audit',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+  },
+  {
+    name: 'mi-perfil',
+    label: 'Mi Perfil & Vehículos',
+    to: '/dashboard/mi-perfil',
+    roles: [],
+    roleBadge: 'Perfil',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
   },
 ]
 
@@ -147,18 +149,111 @@ function isActive(to) {
 </script>
 
 <style scoped>
+.app-sidebar {
+  width: var(--sidebar-width);
+  background-color: #ffffff;
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition-normal);
+
+}
+
+.app-sidebar__header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.app-sidebar__logo {
+  width: 28px;
+  height: 28px;
+  color: var(--color-primary-600);
+}
+.app-sidebar__title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.app-sidebar__toggle {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.app-sidebar__toggle svg { width: 18px; height: 18px; }
+
+.app-sidebar__nav {
+  padding: 1rem 0.75rem;
+  flex: 1;
+}
+.app-sidebar__menu {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.app-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+.app-sidebar__link:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+.app-sidebar__link--active {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-700);
+  border-left: 4px solid var(--color-primary-600);
+}
+
+.app-sidebar__link-icon {
+  display: flex;
+  align-items: center;
+}
+.app-sidebar__link-icon svg { width: 20px; height: 20px; }
+
 .app-sidebar__link-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
 }
+
 .app-sidebar__role-tag {
-  font-size: 0.6rem;
-  padding: 0.1rem 0.35rem;
-  background: var(--color-bg-glass);
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.app-sidebar__footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 </style>

@@ -10,30 +10,42 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Pago extends Model
 {
-    use Auditable, HasFactory;
+    use HasFactory, Auditable;
 
     protected $table = 'pagos';
 
     protected $fillable = [
-        'persona_id',
+        'chofer_id',
+        'cobrador_persona_id',
+        'monto_total',
         'fecha_pago',
-        'motivo',
+        'metodo_pago',
+        'observacion',
         'estado',
+        'usuarioA',
+        'fechaA',
     ];
 
     protected function casts(): array
     {
         return [
-            'fecha_pago' => 'date',
-            'estado'     => 'boolean',
+            'monto_total' => 'decimal:2',
+            'fecha_pago'  => 'datetime',
+            'estado'      => 'boolean',
+            'fechaA'      => 'date',
         ];
     }
 
     // ─── Relaciones ─────────────────────────────────────────────────
 
-    public function persona(): BelongsTo
+    public function chofer(): BelongsTo
     {
-        return $this->belongsTo(Persona::class, 'persona_id');
+        return $this->belongsTo(Chofer::class, 'chofer_id');
+    }
+
+    public function cobradorPersona(): BelongsTo
+    {
+        return $this->belongsTo(Persona::class, 'cobrador_persona_id');
     }
 
     public function pagoObligaciones(): HasMany
@@ -44,18 +56,5 @@ class Pago extends Model
     public function pagoMultas(): HasMany
     {
         return $this->hasMany(PagoMulta::class, 'pago_id');
-    }
-
-    // ─── Helpers ────────────────────────────────────────────────────
-
-    /**
-     * Total abonado en este pago (obligaciones + multas).
-     */
-    public function getTotalPagoAttribute(): float
-    {
-        $obligaciones = (float) $this->pagoObligaciones()->where('estado', true)->sum('monto_abonado');
-        $multas = (float) $this->pagoMultas()->where('estado', true)->sum('monto_abonado');
-
-        return $obligaciones + $multas;
     }
 }

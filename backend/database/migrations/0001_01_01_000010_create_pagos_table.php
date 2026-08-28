@@ -11,9 +11,12 @@ return new class extends Migration
     {
         Schema::create('pagos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('persona_id')->constrained('personas')->cascadeOnUpdate();
-            $table->date('fecha_pago');
-            $table->text('motivo')->nullable();
+            $table->foreignId('chofer_id')->constrained('choferes')->cascadeOnUpdate();
+            $table->foreignId('cobrador_persona_id')->comment('Persona del tesorero o jefe de grupo que cobro')->constrained('personas')->cascadeOnUpdate();
+            $table->decimal('monto_total', 10, 2);
+            $table->dateTime('fecha_pago');
+            $table->string('metodo_pago', 20)->default('EFECTIVO')->comment('EFECTIVO o TRANSFERENCIA_QR');
+            $table->text('observacion')->nullable();
             $table->boolean('estado')->default(true);
             Auditable::columns($table);
             $table->timestamps();

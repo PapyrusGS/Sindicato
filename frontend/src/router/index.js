@@ -52,6 +52,42 @@ const routes = [
         component: () => import('@/views/afiliacion/GestionAfiliadosView.vue'),
         meta: { requiresAuth: true, title: 'Usuarios & Roles' },
       },
+      {
+        path: 'asistencias',
+        name: 'asistencias',
+        component: () => import('@/views/asistencia/ControlAsistenciaView.vue'),
+        meta: { requiresAuth: true, title: 'Control de Asistencia e Inspección' },
+      },
+      {
+        path: 'multas',
+        name: 'multas',
+        component: () => import('@/views/asistencia/RegistroSancionesView.vue'),
+        meta: { requiresAuth: true, title: 'Registro de Sanciones e Infracciones' },
+      },
+      {
+        path: 'obligaciones',
+        name: 'obligaciones',
+        component: () => import('@/views/tesoreria/GestionObligacionesView.vue'),
+        meta: { requiresAuth: true, title: 'Gestión de Obligaciones del Grupo' },
+      },
+      {
+        path: 'cobros',
+        name: 'cobros',
+        component: () => import('@/views/tesoreria/ProcesarCobrosView.vue'),
+        meta: { requiresAuth: true, title: 'Procesamiento de Cobros e Historial' },
+      },
+      {
+        path: 'auditoria',
+        name: 'auditoria',
+        component: () => import('@/views/auditoria/ConsultaAuditoriaView.vue'),
+        meta: { requiresAuth: true, title: 'Bitácora de Auditorías e Historial' },
+      },
+      {
+        path: 'mi-perfil',
+        name: 'mi-perfil',
+        component: () => import('@/views/chofer/PerfilChoferView.vue'),
+        meta: { requiresAuth: true, title: 'Mi Perfil & Vehículos' },
+      },
     ],
   },
 

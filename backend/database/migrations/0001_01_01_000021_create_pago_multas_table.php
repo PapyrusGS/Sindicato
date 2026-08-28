@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('pago_multas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pago_id')->constrained('pagos')->cascadeOnUpdate();
+            $table->foreignId('pago_id')->constrained('pagos')->cascadeOnDelete();
             $table->foreignId('multa_id')->constrained('multas')->cascadeOnUpdate();
             $table->decimal('monto_abonado', 10, 2);
             $table->boolean('estado')->default(true);

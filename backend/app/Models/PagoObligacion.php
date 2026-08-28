@@ -9,15 +9,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PagoObligacion extends Model
 {
-    use Auditable, HasFactory;
+    use HasFactory, Auditable;
 
     protected $table = 'pago_obligaciones';
 
     protected $fillable = [
         'pago_id',
-        'obligacion_id',
+        'obligacion_chofer_id',
         'monto_abonado',
         'estado',
+        'usuarioA',
+        'fechaA',
     ];
 
     protected function casts(): array
@@ -25,6 +27,7 @@ class PagoObligacion extends Model
         return [
             'monto_abonado' => 'decimal:2',
             'estado'        => 'boolean',
+            'fechaA'        => 'date',
         ];
     }
 
@@ -35,8 +38,8 @@ class PagoObligacion extends Model
         return $this->belongsTo(Pago::class, 'pago_id');
     }
 
-    public function obligacion(): BelongsTo
+    public function obligacionChofer(): BelongsTo
     {
-        return $this->belongsTo(Obligacion::class, 'obligacion_id');
+        return $this->belongsTo(ObligacionChofer::class, 'obligacion_chofer_id');
     }
 }

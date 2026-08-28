@@ -10,34 +10,47 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Obligacion extends Model
 {
-    use Auditable, HasFactory;
+    use HasFactory, Auditable;
 
     protected $table = 'obligaciones';
 
     protected $fillable = [
-        'persona_id',
+        'grupo_id',
+        'jefe_persona_id',
         'tipo_obligacion_id',
-        'monto',
-        'fecha_creacion',
+        'tipo_categoria',
+        'concepto',
+        'monto_individual',
+        'monto_total_esperado',
+        'fecha_inicio',
         'fecha_fin',
         'estado',
+        'usuarioA',
+        'fechaA',
     ];
 
     protected function casts(): array
     {
         return [
-            'monto'          => 'decimal:2',
-            'fecha_creacion' => 'date',
-            'fecha_fin'      => 'date',
-            'estado'         => 'boolean',
+            'monto_individual'     => 'decimal:2',
+            'monto_total_esperado' => 'decimal:2',
+            'fecha_inicio'         => 'date',
+            'fecha_fin'            => 'date',
+            'estado'               => 'boolean',
+            'fechaA'               => 'date',
         ];
     }
 
     // ─── Relaciones ─────────────────────────────────────────────────
 
-    public function persona(): BelongsTo
+    public function grupo(): BelongsTo
     {
-        return $this->belongsTo(Persona::class, 'persona_id');
+        return $this->belongsTo(Grupo::class, 'grupo_id');
+    }
+
+    public function jefePersona(): BelongsTo
+    {
+        return $this->belongsTo(Persona::class, 'jefe_persona_id');
     }
 
     public function tipoObligacion(): BelongsTo
@@ -45,26 +58,8 @@ class Obligacion extends Model
         return $this->belongsTo(TipoObligacion::class, 'tipo_obligacion_id');
     }
 
-    public function pagoObligaciones(): HasMany
+    public function asignacionesChoferes(): HasMany
     {
-        return $this->hasMany(PagoObligacion::class, 'obligacion_id');
-    }
-
-    // ─── Helpers ────────────────────────────────────────────────────
-
-    /**
-     * Calcular el monto total abonado a esta obligación.
-     */
-    public function getTotalAbonadoAttribute(): float
-    {
-        return (float) $this->pagoObligaciones()->where('estado', true)->sum('monto_abonado');
-    }
-
-    /**
-     * Calcular el saldo pendiente.
-     */
-    public function getSaldoPendienteAttribute(): float
-    {
-        return (float) $this->monto - $this->total_abonado;
+        return $this->hasMany(ObligacionChofer::class, 'obligacion_id');
     }
 }

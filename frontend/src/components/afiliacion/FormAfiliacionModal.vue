@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div v-if="show" class="modal-backdrop" @click.self="close">
+    <div v-if="isVisible" class="modal-backdrop" @click.self="close">
       <div class="modal-container">
         <!-- Header -->
         <div class="modal-header">
@@ -253,13 +253,17 @@ import { ref, reactive, watch, computed } from 'vue'
 import { afiliacionApi } from '@/api/afiliacionApi'
 
 const props = defineProps({
+  visible: { type: Boolean, default: false },
   show: { type: Boolean, default: false },
+  afiliadoEdit: { type: Object, default: null },
   affiliateData: { type: Object, default: null },
 })
 
 const emit = defineEmits(['close', 'saved'])
 
-const isEditMode = computed(() => !!props.affiliateData)
+const isVisible = computed(() => props.visible || props.show)
+const editData = computed(() => props.afiliadoEdit || props.affiliateData)
+const isEditMode = computed(() => !!editData.value)
 
 const currentStep = ref(1)
 const steps = ['Datos Personales', 'Modalidad & Vehículo', 'Confirmación']
@@ -295,17 +299,17 @@ const form = reactive({
   auto_id_existente: null,
 })
 
-watch(() => props.show, (val) => {
+watch(isVisible, (val) => {
   if (val) {
     cargarAuxiliares().then(() => {
-      if (props.affiliateData) {
-        populateForm(props.affiliateData)
+      if (editData.value) {
+        populateForm(editData.value)
       } else {
         resetForm()
       }
     })
   }
-})
+}, { immediate: true })
 
 async function cargarAuxiliares() {
   try {
@@ -453,7 +457,7 @@ function close() {
   padding: 1rem;
 }
 .modal-container {
-  background: var(--color-bg-tertiary);
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
   width: 100%;
@@ -461,7 +465,7 @@ function close() {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-xl);
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
   overflow: hidden;
 }
 .modal-header {
@@ -470,77 +474,78 @@ function close() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: var(--color-bg-tertiary);
 }
-.modal-title { font-size: 1.2rem; font-weight: 700; color: var(--color-text-primary); }
-.modal-subtitle { font-size: 0.8rem; color: var(--color-text-muted); }
+.modal-title { font-size: 1.2rem; font-weight: 800; color: var(--color-text-primary); }
+.modal-subtitle { font-size: 0.8rem; color: var(--color-text-secondary); }
 .modal-close-btn { background: none; border: none; font-size: 1.5rem; color: var(--color-text-muted); cursor: pointer; }
-.modal-close-btn:hover { color: white; }
+.modal-close-btn:hover { color: var(--color-text-primary); }
 
 .modal-steps {
   display: flex;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: #f8fafc;
   border-bottom: 1px solid var(--color-border);
 }
-.modal-step-item { display: flex; align-items: center; gap: 0.5rem; opacity: 0.5; }
-.modal-step-item--active { opacity: 1; font-weight: 600; }
-.modal-step-item--completed { opacity: 0.8; }
+.modal-step-item { display: flex; align-items: center; gap: 0.5rem; opacity: 0.55; }
+.modal-step-item--active { opacity: 1; font-weight: 700; color: var(--color-primary-700); }
+.modal-step-item--completed { opacity: 0.9; color: var(--color-success); }
 .modal-step-num {
-  width: 24px; height: 24px; border-radius: 50%; background: var(--color-bg-input);
-  display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
+  width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; color: var(--color-text-secondary);
+  display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;
 }
 .modal-step-item--active .modal-step-num { background: var(--color-primary-600); color: white; }
 .modal-step-item--completed .modal-step-num { background: var(--color-success); color: white; }
 
 .modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
-.step-title { font-size: 1rem; font-weight: 600; color: var(--color-primary-300); margin-bottom: 1rem; }
+.step-title { font-size: 1rem; font-weight: 700; color: var(--color-primary-800); margin-bottom: 1rem; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .form-group--full { grid-column: 1 / -1; }
-.form-label { display: block; font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.35rem; }
+.form-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 0.35rem; }
 .form-input {
-  width: 100%; padding: 0.6rem 0.8rem; background: var(--color-bg-input); border: 1px solid var(--color-border);
-  border-radius: var(--radius-md); color: white; font-size: 0.9rem;
+  width: 100%; padding: 0.6rem 0.8rem; background: #ffffff; border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); color: var(--color-text-primary); font-size: 0.9rem;
 }
-.form-input:focus { border-color: var(--color-primary-500); }
+.form-input:focus { border-color: var(--color-primary-600); outline: none; }
 .form-divider { margin: 1.5rem 0; border: none; border-top: 1px solid var(--color-border); }
 
 .checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
-.checkbox-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; }
+.checkbox-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; color: var(--color-text-primary); font-weight: 500; }
 
 .modalidad-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .modalidad-card {
   padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-xl);
-  background: var(--color-bg-glass); cursor: pointer; transition: all var(--transition-fast);
+  background: #ffffff; cursor: pointer; transition: all var(--transition-fast);
 }
 .modalidad-card:hover { border-color: var(--color-primary-400); transform: translateY(-2px); }
-.modalidad-card--selected { border-color: var(--color-primary-500); background: rgba(99, 102, 241, 0.15); }
+.modalidad-card--selected { border-color: var(--color-primary-600); background: var(--color-primary-50); }
 .modalidad-card__icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
-.modalidad-card h4 { font-size: 0.95rem; font-weight: 600; color: white; margin-bottom: 0.35rem; }
+.modalidad-card h4 { font-size: 0.95rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem; }
 .modalidad-card p { font-size: 0.75rem; color: var(--color-text-secondary); line-height: 1.3; }
 
-.subpanel { margin-top: 1.5rem; padding: 1.25rem; background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); border-radius: var(--radius-xl); }
-.subpanel-title { font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 1rem; }
+.subpanel { margin-top: 1.5rem; padding: 1.25rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-xl); }
+.subpanel-title { font-size: 0.9rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 1rem; }
 
-.chofer-toggle-panel { margin-top: 1rem; padding: 0.75rem 1rem; background: var(--color-bg-glass); border-radius: var(--radius-lg); }
-.toggle-label { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-size: 0.85rem; color: white; }
+.chofer-toggle-panel { margin-top: 1rem; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.toggle-label { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-size: 0.85rem; color: var(--color-text-primary); font-weight: 600; }
 
-.summary-box { background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: var(--radius-xl); border: 1px solid var(--color-border); }
+.summary-box { background: var(--color-bg-tertiary); padding: 1.25rem; border-radius: var(--radius-xl); border: 1px solid var(--color-border); }
 .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.85rem; }
-.summary-label { color: var(--color-text-muted); }
-.summary-value { color: white; text-align: right; }
+.summary-label { color: var(--color-text-secondary); }
+.summary-value { color: var(--color-text-primary); text-align: right; font-weight: 600; }
 .summary-badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; background: var(--color-primary-600); color: white; border-radius: var(--radius-sm); margin-left: 0.25rem; }
 
-.modal-error { padding: 0.75rem 1.25rem; background: rgba(239, 68, 68, 0.15); border-bottom: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
+.modal-error { padding: 0.75rem 1.25rem; background: var(--color-error-bg); border-bottom: 1px solid #fecaca; color: var(--color-error); font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
 .modal-error svg { width: 18px; height: 18px; flex-shrink: 0; }
 
-.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 0.75rem; }
+.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 0.75rem; background: var(--color-bg-tertiary); }
 .btn { padding: 0.55rem 1.2rem; font-size: 0.85rem; font-weight: 600; border-radius: var(--radius-lg); border: none; cursor: pointer; transition: all var(--transition-fast); }
 .btn-primary { background: var(--color-primary-600); color: white; }
-.btn-primary:hover { background: var(--color-primary-500); }
-.btn-success { background: var(--color-success); color: white; }
-.btn-success:hover { filter: brightness(1.1); }
-.btn-secondary { background: var(--color-bg-input); color: var(--color-text-primary); border: 1px solid var(--color-border); }
-.btn-secondary:hover { background: rgba(255,255,255,0.1); }
+.btn-primary:hover { background: var(--color-primary-700); }
+.btn-success { background: var(--color-success-bg); color: var(--color-success); border: 1px solid #bbf7d0; font-weight: 700; }
+.btn-success:hover { background: #bbf7d0; }
+.btn-secondary { background: #ffffff; color: var(--color-text-primary); border: 1px solid var(--color-border); }
+.btn-secondary:hover { background: var(--color-bg-tertiary); }
 </style>

@@ -18,12 +18,12 @@ use Illuminate\Support\Facades\Hash;
 class UsuarioSeeder extends Seeder
 {
     /**
-     * Crear roles, personas, usuarios, choferes y datos de prueba.
+     * Crear roles, paradas, grupos, personas, usuarios, choferes y datos completos de prueba.
      */
     public function run(): void
     {
         // ═══════════════════════════════════════════════════════════════
-        // ROLES DEL SINDICATO
+        // 1. ROLES DEL SINDICATO
         // ═══════════════════════════════════════════════════════════════
         $rolesData = [
             ['nombre' => 'Administrador', 'descripcion' => 'Acceso total al sistema'],
@@ -31,226 +31,265 @@ class UsuarioSeeder extends Seeder
             ['nombre' => 'Inspector',     'descripcion' => 'Control de asistencia y emisión de multas'],
             ['nombre' => 'Tesorero',      'descripcion' => 'Gestión de cobros, pagos y obligaciones financieras'],
             ['nombre' => 'Chofer',        'descripcion' => 'Conductor afiliado al sindicato'],
+            ['nombre' => 'Propietario',   'descripcion' => 'Dueño de vehículo afiliado'],
         ];
 
         $roles = [];
         foreach ($rolesData as $data) {
             $roles[$data['nombre']] = Rol::firstOrCreate(
                 ['nombre' => $data['nombre']],
-                array_merge($data, ['estado' => true, 'usuario_audit' => 'system'])
+                array_merge($data, ['estado' => true, 'usuarioA' => 'system', 'fechaA' => now()])
             );
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // GRUPOS DE TRABAJO
+        // 2. 4 GRUPOS DE TRABAJO (A, B, C, D)
         // ═══════════════════════════════════════════════════════════════
         $gruposData = [
-            ['nombre' => 'Grupo A', 'descripcion' => 'Ruta Norte - Centro'],
-            ['nombre' => 'Grupo B', 'descripcion' => 'Ruta Sur - Centro'],
-            ['nombre' => 'Grupo C', 'descripcion' => 'Ruta Este - Centro'],
+            ['nombre' => 'Grupo A', 'descripcion' => 'Primer grupo de rotación'],
+            ['nombre' => 'Grupo B', 'descripcion' => 'Segundo grupo de rotación'],
+            ['nombre' => 'Grupo C', 'descripcion' => 'Tercer grupo de rotación'],
+            ['nombre' => 'Grupo D', 'descripcion' => 'Cuarto grupo de rotación'],
         ];
 
         $grupos = [];
         foreach ($gruposData as $data) {
             $grupos[$data['nombre']] = Grupo::firstOrCreate(
                 ['nombre' => $data['nombre']],
-                array_merge($data, ['estado' => true, 'usuario_audit' => 'system'])
+                array_merge($data, ['estado' => true, 'usuarioA' => 'system', 'fechaA' => now()])
             );
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // LUGARES DE ASISTENCIA
+        // 3. 4 PARADAS ROTATORIAS
         // ═══════════════════════════════════════════════════════════════
-        $lugaresData = ['Terminal Norte', 'Terminal Sur', 'Parada Central', 'Parada Mercado'];
+        $paradasData = ['Obelisco', 'Villa Fátima', 'Parada 3', 'Parada 4'];
 
-        foreach ($lugaresData as $nombre) {
+        foreach ($paradasData as $nombre) {
             Lugar::firstOrCreate(
                 ['nombre' => $nombre],
-                ['estado' => true, 'usuario_audit' => 'system']
+                ['estado' => true, 'usuarioA' => 'system', 'fechaA' => now()]
             );
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // TIPOS DE OBLIGACIÓN
+        // 4. TIPOS DE OBLIGACIÓN
         // ═══════════════════════════════════════════════════════════════
         $tiposObligacion = [
-            ['nombre' => 'Cuota Mensual',     'descripcion' => 'Cuota mensual ordinaria del sindicato'],
+            ['nombre' => 'Cuota Mensual',        'descripcion' => 'Cuota mensual ordinaria del sindicato'],
             ['nombre' => 'Cuota Extraordinaria', 'descripcion' => 'Cuota por eventos o necesidades especiales'],
-            ['nombre' => 'Aporte Sindical',   'descripcion' => 'Aporte obligatorio al fondo sindical'],
+            ['nombre' => 'Aporte Sindical',      'descripcion' => 'Aporte obligatorio al fondo sindical'],
         ];
 
         foreach ($tiposObligacion as $data) {
             TipoObligacion::firstOrCreate(
                 ['nombre' => $data['nombre']],
-                array_merge($data, ['estado' => true, 'usuario_audit' => 'system'])
+                array_merge($data, ['estado' => true, 'usuarioA' => 'system', 'fechaA' => now()])
             );
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // PERSONA + USUARIO ADMINISTRADOR
+        // 5. USUARIO ADMINISTRADOR
         // ═══════════════════════════════════════════════════════════════
         $personaAdmin = Persona::firstOrCreate(
             ['ci' => '0000001'],
             [
-                'primer_nombre'    => 'Admin',
-                'primer_apellido'  => 'Sistema',
-                'estado'           => true,
-                'usuario_audit'    => 'system',
+                'primer_nombre'   => 'Admin',
+                'primer_apellido' => 'Sistema',
+                'estado'          => true,
+                'usuarioA'        => 'system',
+                'fechaA'          => now(),
             ]
         );
 
         $usuarioAdmin = Usuario::firstOrCreate(
             ['username' => 'admin'],
             [
-                'persona_id'    => $personaAdmin->id,
-                'password'      => Hash::make('password'),
-                'estado'        => true,
-                'usuario_audit' => 'system',
+                'persona_id' => $personaAdmin->id,
+                'password'   => Hash::make('password'),
+                'estado'     => true,
+                'usuarioA'   => 'system',
+                'fechaA'     => now(),
             ]
         );
 
         $usuarioAdmin->roles()->syncWithoutDetaching([
-            $roles['Administrador']->id => ['estado' => true, 'usuario_audit' => 'system'],
+            $roles['Administrador']->id => ['estado' => true, 'usuarioA' => 'system', 'fechaA' => now()],
         ]);
 
         // ═══════════════════════════════════════════════════════════════
-        // PERSONAS Y CHOFERES DE PRUEBA
+        // 6. 7 CHOFERES POR CADA GRUPO (28 CHOFERES EN TOTAL)
         // ═══════════════════════════════════════════════════════════════
-        $choferesData = [
+        $todosChoferes = [
+            // ─── GRUPO A ───────────────────────────────────────────────
             [
-                'persona' => ['primer_nombre' => 'Juan',   'segundo_nombre' => 'Carlos', 'primer_apellido' => 'Mamani',  'segundo_apellido' => 'Quispe',  'ci' => '4521678', 'celular' => '71234567', 'direccion' => 'Av. 6 de Agosto #123'],
-                'chofer'  => ['fecha_ingreso' => '2020-03-15'],
-                'roles'   => ['Chofer'],
-                'grupo'   => 'Grupo A',
+                'grupo' => 'Grupo A',
+                'list'  => [
+                    ['pn' => 'Roberto', 'pa' => 'Choque',   'ci' => '7854901', 'cel' => '74567890', 'roles' => ['Chofer', 'Jefe de Grupo'], 'placa' => '1001-AAA', 'marca' => 'Toyota',   'modelo' => 'Hiace'],
+                    ['pn' => 'Miguel',  'pa' => 'Flores',   'ci' => '6743890', 'cel' => '73456789', 'roles' => ['Chofer', 'Inspector'],     'placa' => '1002-AAA', 'marca' => 'Hyundai',  'modelo' => 'H1'],
+                    ['pn' => 'Pedro',   'pa' => 'Condori',  'ci' => '5632789', 'cel' => '72345678', 'roles' => ['Chofer', 'Tesorero'],      'placa' => '1003-AAA', 'marca' => 'Nissan',   'modelo' => 'Urvan'],
+                    ['pn' => 'Juan',    'pa' => 'Mamani',   'ci' => '4521678', 'cel' => '71234567', 'roles' => ['Chofer'],                  'placa' => '1004-AAA', 'marca' => 'Toyota',   'modelo' => 'Coaster'],
+                    ['pn' => 'Carlos',  'pa' => 'Ticona',   'ci' => '8965012', 'cel' => '75678901', 'roles' => ['Chofer'],                  'placa' => '1005-AAA', 'marca' => 'Mercedes', 'modelo' => 'Sprinter'],
+                    ['pn' => 'Mario',   'pa' => 'Quispe',   'ci' => '1122334', 'cel' => '76112233', 'roles' => ['Chofer'],                  'placa' => '1006-AAA', 'marca' => 'Toyota',   'modelo' => 'Hiace'],
+                    ['pn' => 'Luis',    'pa' => 'Apaza',    'ci' => '2233445', 'cel' => '77223344', 'roles' => ['Chofer'],                  'placa' => '1007-AAA', 'marca' => 'Hyundai',  'modelo' => 'H1'],
+                ],
             ],
+
+            // ─── GRUPO B (Propietario Efraín Mendoza con 2 choferes) ────
             [
-                'persona' => ['primer_nombre' => 'Pedro',  'segundo_nombre' => null,      'primer_apellido' => 'Condori', 'segundo_apellido' => 'Huanca',  'ci' => '5632789', 'celular' => '72345678', 'direccion' => 'Calle Comercio #456'],
-                'chofer'  => ['fecha_ingreso' => '2019-07-01'],
-                'roles'   => ['Chofer', 'Tesorero'],  // Un chofer puede ser también tesorero
-                'grupo'   => 'Grupo A',
+                'grupo' => 'Grupo B',
+                'list'  => [
+                    ['pn' => 'Raúl',    'pa' => 'Vargas',   'ci' => '3344556', 'cel' => '78334455', 'roles' => ['Chofer', 'Jefe de Grupo'], 'placa' => '2001-BBB', 'marca' => 'Toyota',   'modelo' => 'Coaster'],
+                    ['pn' => 'Gonzalo', 'pa' => 'Gutiérrez','ci' => '4455667', 'cel' => '79445566', 'roles' => ['Chofer', 'Inspector'],     'placa' => '2002-BBB', 'marca' => 'Nissan',   'modelo' => 'Urvan'],
+                    ['pn' => 'Hugo',    'pa' => 'Torrez',   'ci' => '5566778', 'cel' => '70556677', 'roles' => ['Chofer', 'Tesorero'],      'placa' => '2003-BBB', 'marca' => 'Mercedes', 'modelo' => 'Sprinter'],
+                    // Efraín Mendoza es Propietario y Chofer del auto 2004-BBB
+                    ['pn' => 'Efraín',  'pa' => 'Mendoza',  'ci' => '6677889', 'cel' => '71667788', 'roles' => ['Chofer', 'Propietario'],   'placa' => '2004-BBB', 'marca' => 'Toyota',   'modelo' => 'Hiace', 'es_propietario_duo' => true],
+                    // Oscar Paz es el Segundo Chofer que conduce el vehículo 2004-BBB de Efraín
+                    ['pn' => 'Oscar',   'pa' => 'Paz',      'ci' => '7788990', 'cel' => '72778899', 'roles' => ['Chofer'],                  'auto_compartido' => '2004-BBB'],
+                    ['pn' => 'Jorge',   'pa' => 'Arce',     'ci' => '8899001', 'cel' => '73889900', 'roles' => ['Chofer'],                  'placa' => '2005-BBB', 'marca' => 'Hyundai',  'modelo' => 'H1'],
+                    ['pn' => 'René',    'pa' => 'Soliz',    'ci' => '9900112', 'cel' => '74990011', 'roles' => ['Chofer'],                  'placa' => '2006-BBB', 'marca' => 'Toyota',   'modelo' => 'Coaster'],
+                ],
             ],
+
+            // ─── GRUPO C ───────────────────────────────────────────────
             [
-                'persona' => ['primer_nombre' => 'Miguel', 'segundo_nombre' => 'Ángel',   'primer_apellido' => 'Flores',  'segundo_apellido' => 'Rojas',   'ci' => '6743890', 'celular' => '73456789', 'direccion' => 'Zona San Pedro #789'],
-                'chofer'  => ['fecha_ingreso' => '2021-01-10'],
-                'roles'   => ['Chofer', 'Inspector'],
-                'grupo'   => 'Grupo B',
+                'grupo' => 'Grupo C',
+                'list'  => [
+                    ['pn' => 'Walter',  'pa' => 'Calle',    'ci' => '1010101', 'cel' => '75101010', 'roles' => ['Chofer', 'Jefe de Grupo'], 'placa' => '3001-CCC', 'marca' => 'Nissan',   'modelo' => 'Urvan'],
+                    ['pn' => 'Sergio',  'pa' => 'Villca',   'ci' => '2020202', 'cel' => '76202020', 'roles' => ['Chofer', 'Inspector'],     'placa' => '3002-CCC', 'marca' => 'Toyota',   'modelo' => 'Hiace'],
+                    ['pn' => 'Hernán',  'pa' => 'Lima',     'ci' => '3030303', 'cel' => '77303030', 'roles' => ['Chofer', 'Tesorero'],      'placa' => '3003-CCC', 'marca' => 'Hyundai',  'modelo' => 'H1'],
+                    ['pn' => 'Rubén',   'pa' => 'Claros',   'ci' => '4040404', 'cel' => '78404040', 'roles' => ['Chofer'],                  'placa' => '3004-CCC', 'marca' => 'Mercedes', 'modelo' => 'Sprinter'],
+                    ['pn' => 'Iván',    'pa' => 'Choque',   'ci' => '5050505', 'cel' => '79505050', 'roles' => ['Chofer'],                  'placa' => '3005-CCC', 'marca' => 'Toyota',   'modelo' => 'Coaster'],
+                    ['pn' => 'Edgar',   'pa' => 'Chávez',   'ci' => '6060606', 'cel' => '70606060', 'roles' => ['Chofer'],                  'placa' => '3006-CCC', 'marca' => 'Nissan',   'modelo' => 'Urvan'],
+                    ['pn' => 'Víctor',  'pa' => 'Ríos',     'ci' => '7070707', 'cel' => '71707070', 'roles' => ['Chofer'],                  'placa' => '3007-CCC', 'marca' => 'Toyota',   'modelo' => 'Hiace'],
+                ],
             ],
+
+            // ─── GRUPO D (Propietario Guillermo Paredes con 2 choferes) 
             [
-                'persona' => ['primer_nombre' => 'Roberto','segundo_nombre' => null,       'primer_apellido' => 'Choque',  'segundo_apellido' => 'Limachi', 'ci' => '7854901', 'celular' => '74567890', 'direccion' => 'Villa Fátima #321'],
-                'chofer'  => ['fecha_ingreso' => '2018-05-20'],
-                'roles'   => ['Chofer', 'Jefe de Grupo'],
-                'grupo'   => 'Grupo B',
-            ],
-            [
-                'persona' => ['primer_nombre' => 'Carlos', 'segundo_nombre' => 'Eduardo',  'primer_apellido' => 'Ticona', 'segundo_apellido' => 'Apaza',   'ci' => '8965012', 'celular' => '75678901', 'direccion' => 'El Alto, Zona 16 de Julio'],
-                'chofer'  => ['fecha_ingreso' => '2022-09-01'],
-                'roles'   => ['Chofer'],
-                'grupo'   => 'Grupo C',
+                'grupo' => 'Grupo D',
+                'list'  => [
+                    ['pn' => 'Félix',   'pa' => 'Mamani',   'ci' => '8080808', 'cel' => '72808080', 'roles' => ['Chofer', 'Jefe de Grupo'], 'placa' => '4001-DDD', 'marca' => 'Toyota',   'modelo' => 'Coaster'],
+                    ['pn' => 'David',   'pa' => 'Gutiérrez','ci' => '9012345', 'cel' => '76789012', 'roles' => ['Chofer', 'Inspector'],     'placa' => '4002-DDD', 'marca' => 'Hyundai',  'modelo' => 'H1'],
+                    ['pn' => 'Ramiro',  'pa' => 'Suárez',   'ci' => '9090909', 'cel' => '73909090', 'roles' => ['Chofer', 'Tesorero'],      'placa' => '4003-DDD', 'marca' => 'Nissan',   'modelo' => 'Urvan'],
+                    // Guillermo Paredes es Propietario y Chofer del auto 4004-DDD
+                    ['pn' => 'Guillermo','pa' =>'Paredes',  'ci' => '1212121', 'cel' => '74121212', 'roles' => ['Chofer', 'Propietario'],   'placa' => '4004-DDD', 'marca' => 'Mercedes', 'modelo' => 'Sprinter', 'es_propietario_duo' => true],
+                    // Alonso Terán es el Segundo Chofer que comparte el auto 4004-DDD de Guillermo
+                    ['pn' => 'Alonso',  'pa' => 'Terán',    'ci' => '2323232', 'cel' => '75232323', 'roles' => ['Chofer'],                  'auto_compartido' => '4004-DDD'],
+                    ['pn' => 'Marcelo', 'pa' => 'Veizaga',  'ci' => '3434343', 'cel' => '76343434', 'roles' => ['Chofer'],                  'placa' => '4005-DDD', 'marca' => 'Toyota',   'modelo' => 'Hiace'],
+                    ['pn' => 'Jaime',   'pa' => 'Montero',  'ci' => '4545454', 'cel' => '77454545', 'roles' => ['Chofer'],                  'placa' => '4006-DDD', 'marca' => 'Hyundai',  'modelo' => 'H1'],
+                ],
             ],
         ];
 
-        $choferesCreados = [];
+        // Mapa de autos creados por placa para vincular segundos choferes
+        $autosPorPlaca = [];
 
-        foreach ($choferesData as $data) {
-            // Persona
-            $persona = Persona::firstOrCreate(
-                ['ci' => $data['persona']['ci']],
-                array_merge($data['persona'], ['estado' => true, 'usuario_audit' => 'system'])
-            );
+        foreach ($todosChoferes as $grupoBlock) {
+            $grupoModel = $grupos[$grupoBlock['grupo']];
 
-            // Chofer
-            $chofer = Chofer::firstOrCreate(
-                ['persona_id' => $persona->id],
-                array_merge($data['chofer'], ['estado' => true, 'usuario_audit' => 'system'])
-            );
+            foreach ($grupoBlock['list'] as $item) {
+                // 1. Persona
+                $persona = Persona::firstOrCreate(
+                    ['ci' => $item['ci']],
+                    [
+                        'primer_nombre'   => $item['pn'],
+                        'primer_apellido' => $item['pa'],
+                        'celular'         => $item['cel'],
+                        'estado'          => true,
+                        'usuarioA'        => 'system',
+                        'fechaA'          => now(),
+                    ]
+                );
 
-            // Usuario para cada chofer
-            $username = strtolower($data['persona']['primer_nombre']) . '.' . strtolower($data['persona']['primer_apellido']);
-            $usuario = Usuario::firstOrCreate(
-                ['username' => $username],
-                [
-                    'persona_id'    => $persona->id,
-                    'password'      => Hash::make('password'),
-                    'estado'        => true,
-                    'usuario_audit' => 'system',
-                ]
-            );
+                // 2. Chofer
+                $chofer = Chofer::firstOrCreate(
+                    ['persona_id' => $persona->id],
+                    [
+                        'fecha_ingreso' => '2021-01-15',
+                        'estado'        => true,
+                        'usuarioA'      => 'system',
+                        'fechaA'        => now(),
+                    ]
+                );
 
-            // Asignar roles
-            $rolIds = [];
-            foreach ($data['roles'] as $rolNombre) {
-                $rolIds[$roles[$rolNombre]->id] = ['estado' => true, 'usuario_audit' => 'system'];
+                // 3. Usuario
+                $username = strtolower(str_replace(' ', '', $item['pn'])) . '.' . strtolower(str_replace(' ', '', $item['pa']));
+                $usuario = Usuario::firstOrCreate(
+                    ['username' => $username],
+                    [
+                        'persona_id' => $persona->id,
+                        'password'   => Hash::make('password'),
+                        'estado'     => true,
+                        'usuarioA'   => 'system',
+                        'fechaA'     => now(),
+                    ]
+                );
+
+                // 4. Asignar Roles
+                $rolIds = [];
+                foreach ($item['roles'] as $rNombre) {
+                    if (isset($roles[$rNombre])) {
+                        $rolIds[$roles[$rNombre]->id] = ['estado' => true, 'usuarioA' => 'system', 'fechaA' => now()];
+                    }
+                }
+                $usuario->roles()->syncWithoutDetaching($rolIds);
+
+                // 5. Gestión de Vehículo y Propietario
+                if (isset($item['placa'])) {
+                    // Este afiliado es propietario de un nuevo auto
+                    $propietario = Propietario::firstOrCreate(
+                        ['persona_id' => $persona->id],
+                        [
+                            'fecha_registro' => '2021-01-15',
+                            'estado'         => true,
+                            'usuarioA'       => 'system',
+                            'fechaA'         => now(),
+                        ]
+                    );
+
+                    $auto = Auto::firstOrCreate(
+                        ['placa' => $item['placa']],
+                        [
+                            'propietario_id' => $propietario->id,
+                            'marca'          => $item['marca'],
+                            'modelo'         => $item['modelo'],
+                            'gestion'        => 2020,
+                            'estado'         => true,
+                            'usuarioA'       => 'system',
+                            'fechaA'         => now(),
+                        ]
+                    );
+
+                    $autosPorPlaca[$item['placa']] = $auto;
+
+                    // Asignar el chofer a este auto en su grupo
+                    ChoferAuto::firstOrCreate(
+                        ['auto_id' => $auto->id, 'chofer_id' => $chofer->id],
+                        [
+                            'grupo_id' => $grupoModel->id,
+                            'estado'   => true,
+                            'usuarioA' => 'system',
+                            'fechaA'   => now(),
+                        ]
+                    );
+                } else if (isset($item['auto_compartido'])) {
+                    // Es un segundo chofer asignado a un auto existente del propietario
+                    $autoExistente = $autosPorPlaca[$item['auto_compartido']] ?? null;
+
+                    if ($autoExistente) {
+                        ChoferAuto::firstOrCreate(
+                            ['auto_id' => $autoExistente->id, 'chofer_id' => $chofer->id],
+                            [
+                                'grupo_id' => $grupoModel->id,
+                                'estado'   => true,
+                                'usuarioA' => 'system',
+                                'fechaA'   => now(),
+                            ]
+                        );
+                    }
+                }
             }
-            $usuario->roles()->syncWithoutDetaching($rolIds);
-
-            $choferesCreados[] = [
-                'chofer' => $chofer,
-                'grupo'  => $data['grupo'],
-                'persona' => $persona,
-            ];
-        }
-
-        // ═══════════════════════════════════════════════════════════════
-        // PROPIETARIOS Y VEHÍCULOS DE PRUEBA
-        // ═══════════════════════════════════════════════════════════════
-
-        // Algunos choferes son también propietarios de sus vehículos
-        $vehiculosData = [
-            ['propietario_idx' => 0, 'placa' => '1234-ABC', 'marca' => 'Toyota',    'modelo' => 'Hiace',       'gestion' => 2018, 'grupo' => 'Grupo A'],
-            ['propietario_idx' => 1, 'placa' => '2345-BCD', 'marca' => 'Hyundai',   'modelo' => 'H1',          'gestion' => 2020, 'grupo' => 'Grupo A'],
-            ['propietario_idx' => 3, 'placa' => '3456-CDE', 'marca' => 'Mercedes',  'modelo' => 'Sprinter',    'gestion' => 2019, 'grupo' => 'Grupo B'],
-            ['propietario_idx' => 4, 'placa' => '4567-DEF', 'marca' => 'Nissan',    'modelo' => 'Urvan',       'gestion' => 2021, 'grupo' => 'Grupo C'],
-        ];
-
-        foreach ($vehiculosData as $vData) {
-            $choferInfo = $choferesCreados[$vData['propietario_idx']];
-
-            // Registrar como propietario
-            $propietario = Propietario::firstOrCreate(
-                ['persona_id' => $choferInfo['persona']->id],
-                [
-                    'fecha_registro' => $choferInfo['chofer']->fecha_ingreso,
-                    'estado'         => true,
-                    'usuario_audit'  => 'system',
-                ]
-            );
-
-            // Crear vehículo
-            $auto = Auto::firstOrCreate(
-                ['placa' => $vData['placa']],
-                [
-                    'propietario_id' => $propietario->id,
-                    'marca'          => $vData['marca'],
-                    'modelo'         => $vData['modelo'],
-                    'gestion'        => $vData['gestion'],
-                    'estado'         => true,
-                    'usuario_audit'  => 'system',
-                ]
-            );
-
-            // Asignar chofer al auto en su grupo
-            ChoferAuto::firstOrCreate(
-                ['auto_id' => $auto->id, 'chofer_id' => $choferInfo['chofer']->id],
-                [
-                    'grupo_id'       => $grupos[$vData['grupo']]->id,
-                    'estado'         => true,
-                    'usuario_audit'  => 'system',
-                ]
-            );
-        }
-
-        // Miguel (inspector, Grupo B) también conduce el Sprinter de Roberto
-        $miguelChofer = $choferesCreados[2]['chofer'];
-        $autoRoberto = Auto::where('placa', '3456-CDE')->first();
-        if ($miguelChofer && $autoRoberto) {
-            ChoferAuto::firstOrCreate(
-                ['auto_id' => $autoRoberto->id, 'chofer_id' => $miguelChofer->id],
-                [
-                    'grupo_id'       => $grupos['Grupo B']->id,
-                    'estado'         => true,
-                    'usuario_audit'  => 'system',
-                ]
-            );
         }
     }
 }

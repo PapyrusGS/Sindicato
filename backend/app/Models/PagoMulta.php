@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PagoMulta extends Model
 {
-    use Auditable, HasFactory;
+    use HasFactory, Auditable;
 
     protected $table = 'pago_multas';
 
@@ -18,6 +18,8 @@ class PagoMulta extends Model
         'multa_id',
         'monto_abonado',
         'estado',
+        'usuarioA',
+        'fechaA',
     ];
 
     protected function casts(): array
@@ -25,6 +27,7 @@ class PagoMulta extends Model
         return [
             'monto_abonado' => 'decimal:2',
             'estado'        => 'boolean',
+            'fechaA'        => 'date',
         ];
     }
 

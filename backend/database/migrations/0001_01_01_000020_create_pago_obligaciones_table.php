@@ -11,8 +11,8 @@ return new class extends Migration
     {
         Schema::create('pago_obligaciones', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pago_id')->constrained('pagos')->cascadeOnUpdate();
-            $table->foreignId('obligacion_id')->constrained('obligaciones')->cascadeOnUpdate();
+            $table->foreignId('pago_id')->constrained('pagos')->cascadeOnDelete();
+            $table->foreignId('obligacion_chofer_id')->constrained('obligacion_choferes')->cascadeOnUpdate();
             $table->decimal('monto_abonado', 10, 2);
             $table->boolean('estado')->default(true);
             Auditable::columns($table);
