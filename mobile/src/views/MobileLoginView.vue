@@ -1,9 +1,11 @@
 <template>
   <div class="mobile-login">
     <div class="login-header">
-      <div class="app-logo">🚍</div>
+      <div class="app-logo">
+        <img src="/logo-minibus.svg" alt="Minibús Sindicato Logo" class="mobile-logo-img" />
+      </div>
       <h1 class="app-title">Sindicato Móvil</h1>
-      <p class="app-subtitle">Sistema de Control Operativo, Asistencias & Tesorería</p>
+      <p class="app-subtitle">Sistema de Control Operativo, Asistencias y Tesorería</p>
     </div>
 
     <form @submit.prevent="handleLogin" class="login-form">
@@ -123,7 +125,8 @@ async function handleLogin() {
   text-align: center;
   margin-bottom: 2rem;
 }
-.app-logo { font-size: 3.5rem; margin-bottom: 0.5rem; }
+.app-logo { margin-bottom: 0.5rem; }
+.mobile-logo-img { width: 80px; height: 80px; margin: 0 auto; display: block; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
 .app-title { font-size: 1.6rem; font-weight: 800; color: #1e293b; }
 .app-subtitle { font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; }
 

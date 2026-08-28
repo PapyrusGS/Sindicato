@@ -27,7 +27,7 @@
           </div>
         </div>
 
-        <!-- Error Alert -->
+        <!-- Error Alert General -->
         <transition name="fade">
           <div v-if="error" class="modal-error">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -42,6 +42,7 @@
             <h3 class="step-title">1. Información Personal y Credenciales</h3>
             
             <div class="form-grid">
+              <!-- Primer Nombre (Bloqueo Físico de Números + Instant Title Case) -->
               <div class="form-group">
                 <label class="form-label">Primer Nombre *</label>
                 <input
@@ -49,10 +50,13 @@
                   type="text"
                   class="form-input"
                   placeholder="ej. Juan"
-                  @input="cleanNombreField('primer_nombre')"
+                  @input="onNombreInput('primer_nombre')"
                   required
                 />
+                <small v-if="form.primer_nombre" class="input-hint success-hint">✓ Solo letras (Primera Mayúscula)</small>
               </div>
+
+              <!-- Segundo Nombre -->
               <div class="form-group">
                 <label class="form-label">Segundo Nombre</label>
                 <input
@@ -60,9 +64,12 @@
                   type="text"
                   class="form-input"
                   placeholder="ej. Carlos"
-                  @input="cleanNombreField('segundo_nombre')"
+                  @input="onNombreInput('segundo_nombre')"
                 />
+                <small v-if="form.segundo_nombre" class="input-hint success-hint">✓ Solo letras</small>
               </div>
+
+              <!-- Primer Apellido -->
               <div class="form-group">
                 <label class="form-label">Primer Apellido *</label>
                 <input
@@ -70,10 +77,13 @@
                   type="text"
                   class="form-input"
                   placeholder="ej. Pérez"
-                  @input="cleanNombreField('primer_apellido')"
+                  @input="onNombreInput('primer_apellido')"
                   required
                 />
+                <small v-if="form.primer_apellido" class="input-hint success-hint">✓ Solo letras (Primera Mayúscula)</small>
               </div>
+
+              <!-- Segundo Apellido -->
               <div class="form-group">
                 <label class="form-label">Segundo Apellido</label>
                 <input
@@ -81,32 +91,40 @@
                   type="text"
                   class="form-input"
                   placeholder="ej. Mamani"
-                  @input="cleanNombreField('segundo_apellido')"
+                  @input="onNombreInput('segundo_apellido')"
                 />
+                <small v-if="form.segundo_apellido" class="input-hint success-hint">✓ Solo letras</small>
               </div>
+
+              <!-- Cédula de Identidad (Bloqueo Físico de Letras Raras) -->
               <div class="form-group">
                 <label class="form-label">Cédula de Identidad (CI) *</label>
                 <input
                   v-model="form.ci"
                   type="text"
-                  class="form-input"
+                  class="form-input font-mono"
                   placeholder="ej. 4521678"
-                  @input="cleanCiField"
+                  @input="onCiInput"
                   required
                 />
+                <small v-if="form.ci" class="input-hint success-hint">✓ Formato CI válido</small>
               </div>
+
+              <!-- Celular (Bloqueo Físico de Letras + Validación Instantánea 8 dígitos empezando en 6/7) -->
               <div class="form-group">
-                <label class="form-label">Celular (8 dígitos, inicia en 6 o 7)</label>
+                <label class="form-label">Celular (8 dígitos, debe iniciar en 6 o 7)</label>
                 <input
                   v-model="form.celular"
                   type="text"
-                  class="form-input"
+                  class="form-input font-mono"
                   placeholder="ej. 71234567"
                   maxlength="8"
-                  @input="cleanCelularField"
+                  @input="onCelularInput"
                 />
-                <small v-if="celularError" class="input-hint error-hint">{{ celularError }}</small>
+                <small v-if="celularInstantError" class="input-hint error-hint">⚠️ {{ celularInstantError }}</small>
+                <small v-else-if="form.celular && form.celular.length === 8" class="input-hint success-hint">✓ 8 dígitos válidos (Empieza en {{ form.celular[0] }})</small>
               </div>
+
               <div class="form-group form-group--full">
                 <label class="form-label">Dirección / Domicilio</label>
                 <input v-model="form.direccion" type="text" class="form-input" placeholder="ej. Av. 6 de Agosto #123" />
@@ -119,7 +137,7 @@
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">Nombre de Usuario (Username) *</label>
-                <input v-model="form.username" type="text" class="form-input" placeholder="ej. juan.perez" required />
+                <input v-model="form.username" type="text" class="form-input font-mono" placeholder="ej. juan.perez" required />
               </div>
               <div class="form-group">
                 <label class="form-label">Contraseña {{ isEditMode ? '(Dejar en blanco para no cambiar)' : '*' }}</label>
@@ -184,16 +202,17 @@
                     type="text"
                     class="form-input font-mono"
                     placeholder="ej. 1234-ABC"
-                    @input="cleanPlacaField"
+                    @input="onPlacaInput"
                   />
+                  <small v-if="form.auto_placa" class="input-hint success-hint">✓ Mayúsculas automáticas</small>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Marca</label>
-                  <input v-model="form.auto_marca" type="text" class="form-input" placeholder="ej. Toyota" @input="cleanNombreField('auto_marca')" />
+                  <input v-model="form.auto_marca" type="text" class="form-input" placeholder="ej. Toyota" @input="onNombreInput('auto_marca')" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Modelo</label>
-                  <input v-model="form.auto_modelo" type="text" class="form-input" placeholder="ej. Hiace" @input="cleanNombreField('auto_modelo')" />
+                  <input v-model="form.auto_modelo" type="text" class="form-input" placeholder="ej. Hiace" @input="onNombreInput('auto_modelo')" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Gestión / Año</label>
@@ -285,7 +304,7 @@
             Siguiente
           </button>
 
-          <button v-if="currentStep === 3" class="btn btn-success" @click="submit" :disabled="submitting">
+          <button v-if="currentStep === 3" class="btn btn-success" @click="submit" :disabled="submitting || celularInstantError">
             <span v-if="submitting">Guardando...</span>
             <span v-else>{{ isEditMode ? 'Guardar Cambios' : 'Confirmar y Registrar Afiliación' }}</span>
           </button>
@@ -298,6 +317,7 @@
 <script setup>
 import { ref, reactive, watch, computed } from 'vue'
 import { afiliacionApi } from '@/api/afiliacionApi'
+import { formatTitleCase, maskCelular, validateCelular, maskCi, maskPlaca } from '@/utils/inputMasks'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -316,7 +336,7 @@ const currentStep = ref(1)
 const steps = ['Datos Personales', 'Modalidad & Vehículo', 'Confirmación']
 const submitting = ref(false)
 const error = ref(null)
-const celularError = ref('')
+const celularInstantError = ref('')
 
 const rolesDisponibles = ref([])
 const grupos = ref([])
@@ -347,45 +367,31 @@ const form = reactive({
   auto_id_existente: null,
 })
 
-// Helper para formatear cadenas a Title Case (Primeras letras mayúsculas, sin números)
-function toTitleCase(str) {
-  if (!str) return ''
-  // Eliminar dígitos números
-  const clean = str.replace(/[0-9]/g, '')
-  return clean.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())
-}
-
-function cleanNombreField(field) {
+// Handlers de Máscara y Filtrado Instantáneo en Tiempo Real
+function onNombreInput(field) {
   if (form[field]) {
-    form[field] = toTitleCase(form[field])
+    form[field] = formatTitleCase(form[field])
   }
 }
 
-function cleanCelularField() {
-  if (form.celular) {
-    // Mantener sólo dígitos
-    form.celular = form.celular.replace(/\D/g, '').slice(0, 8)
-    if (form.celular.length > 0 && !['6', '7'].includes(form.celular[0])) {
-      celularError.value = 'El celular debe comenzar con 6 o 7.'
-    } else if (form.celular.length > 0 && form.celular.length < 8) {
-      celularError.value = 'El celular debe tener 8 dígitos.'
-    } else {
-      celularError.value = ''
-    }
-  } else {
-    celularError.value = ''
-  }
-}
-
-function cleanCiField() {
+function onCiInput() {
   if (form.ci) {
-    form.ci = form.ci.toUpperCase().replace(/\s+/g, '')
+    form.ci = maskCi(form.ci)
   }
 }
 
-function cleanPlacaField() {
+function onCelularInput() {
+  if (form.celular) {
+    form.celular = maskCelular(form.celular)
+    celularInstantError.value = validateCelular(form.celular)
+  } else {
+    celularInstantError.value = ''
+  }
+}
+
+function onPlacaInput() {
   if (form.auto_placa) {
-    form.auto_placa = form.auto_placa.toUpperCase().replace(/[^A-Z0-9\-]/g, '')
+    form.auto_placa = maskPlaca(form.auto_placa)
   }
 }
 
@@ -417,7 +423,7 @@ async function cargarAuxiliares() {
 function resetForm() {
   currentStep.value = 1
   error.value = null
-  celularError.value = ''
+  celularInstantError.value = ''
   Object.assign(form, {
     id: null,
     primer_nombre: '',
@@ -446,7 +452,7 @@ function resetForm() {
 function populateForm(data) {
   currentStep.value = 1
   error.value = null
-  celularError.value = ''
+  celularInstantError.value = ''
   form.id = data.id
   form.primer_nombre = data.primer_nombre || ''
   form.segundo_nombre = data.segundo_nombre || ''
@@ -608,6 +614,7 @@ function close() {
 
 .input-hint { display: block; font-size: 0.75rem; margin-top: 0.25rem; }
 .error-hint { color: #dc2626; font-weight: 600; }
+.success-hint { color: #16a34a; font-weight: 600; }
 
 .checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
 .checkbox-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; color: var(--color-text-primary); font-weight: 500; }

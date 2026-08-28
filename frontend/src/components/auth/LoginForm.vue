@@ -1,7 +1,7 @@
 <template>
   <form class="login-card" @submit.prevent="handleSubmit" id="login-form">
     <h2 class="login-card__title">Iniciar Sesión</h2>
-    <p class="login-card__subtitle">Ingrese sus credenciales registradas</p>
+    <p class="login-card__subtitle">Ingrese sus credenciales de acceso</p>
 
     <div class="form-group">
       <label for="login-username" class="form-label">Nombre de Usuario</label>
@@ -14,7 +14,7 @@
           id="login-username"
           v-model="form.username"
           type="text"
-          placeholder="ej. admin o miguel.flores"
+          placeholder="Nombre de usuario..."
           class="form-control input-has-icon"
           required
           autocomplete="username"
@@ -70,18 +70,8 @@
       id="btn-login"
     >
       <AppLoader v-if="loading" :visible="true" />
-      <span v-else>Ingresar al Sistema</span>
+      <span v-else>Iniciar Sesión</span>
     </button>
-
-    <div class="login-card__demo-users">
-      <p class="login-card__demo-title">Credenciales de prueba (clave: <code>password</code>):</p>
-      <div class="login-card__demo-tags">
-        <button type="button" class="demo-tag" @click="setCredentials('admin')">admin (Admin)</button>
-        <button type="button" class="demo-tag" @click="setCredentials('miguel.flores')">miguel.flores (Inspector A)</button>
-        <button type="button" class="demo-tag" @click="setCredentials('gonzalo.gutierrez')">gonzalo.gutierrez (Inspector B)</button>
-        <button type="button" class="demo-tag" @click="setCredentials('pedro.condori')">pedro.condori (Tesorero A)</button>
-      </div>
-    </div>
   </form>
 </template>
 
@@ -97,11 +87,6 @@ const form = reactive({
   password: '',
 })
 const showPassword = ref(false)
-
-function setCredentials(user) {
-  form.username = user
-  form.password = 'password'
-}
 
 async function handleSubmit() {
   try {
@@ -130,7 +115,7 @@ async function handleSubmit() {
 .toggle-password-btn { position: absolute; right: 0.85rem; background: none; border: none; color: var(--color-text-muted); cursor: pointer; display: flex; }
 .toggle-password-btn svg { width: 18px; height: 18px; }
 
-.login-card__submit { width: 100%; margin-top: 0.5rem; padding: 0.75rem; font-size: 0.95rem; }
+.login-card__submit { width: 100%; margin-top: 1rem; padding: 0.75rem; font-size: 0.95rem; font-weight: 700; }
 
 .login-card__error {
   background: var(--color-error-bg);
@@ -145,11 +130,4 @@ async function handleSubmit() {
   margin-bottom: 1rem;
 }
 .login-card__error svg { width: 18px; height: 18px; flex-shrink: 0; }
-
-.login-card__demo-users { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-border); }
-.login-card__demo-title { font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.5rem; }
-.login-card__demo-title code { color: var(--color-primary-700); font-weight: 700; }
-.login-card__demo-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-.demo-tag { font-size: 0.7rem; padding: 0.25rem 0.5rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-secondary); font-weight: 600; cursor: pointer; transition: all var(--transition-fast); }
-.demo-tag:hover { border-color: var(--color-primary-600); color: var(--color-primary-700); background: var(--color-primary-50); }
 </style>
