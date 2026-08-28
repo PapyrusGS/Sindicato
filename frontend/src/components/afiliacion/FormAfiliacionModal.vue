@@ -5,7 +5,7 @@
         <!-- Header -->
         <div class="modal-header">
           <div>
-            <h2 class="modal-title">{{ isEditMode ? 'Editar Afiliado & Datos' : 'Registro de Afiliación & Vehículo' }}</h2>
+            <h2 class="modal-title">{{ isEditMode ? 'Editar Afiliado' : 'Registro de Afiliación y Vehículo' }}</h2>
             <p class="modal-subtitle">{{ isEditMode ? 'Modificar datos personales, cuenta, roles o vehículo' : 'Proceso guiado de alta de usuario, chofer o propietario' }}</p>
           </div>
           <button class="modal-close-btn" @click="close">&times;</button>
@@ -44,27 +44,68 @@
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">Primer Nombre *</label>
-                <input v-model="form.primer_nombre" type="text" class="form-input" placeholder="ej. Juan" required />
+                <input
+                  v-model="form.primer_nombre"
+                  type="text"
+                  class="form-input"
+                  placeholder="ej. Juan"
+                  @input="cleanNombreField('primer_nombre')"
+                  required
+                />
               </div>
               <div class="form-group">
                 <label class="form-label">Segundo Nombre</label>
-                <input v-model="form.segundo_nombre" type="text" class="form-input" placeholder="ej. Carlos" />
+                <input
+                  v-model="form.segundo_nombre"
+                  type="text"
+                  class="form-input"
+                  placeholder="ej. Carlos"
+                  @input="cleanNombreField('segundo_nombre')"
+                />
               </div>
               <div class="form-group">
                 <label class="form-label">Primer Apellido *</label>
-                <input v-model="form.primer_apellido" type="text" class="form-input" placeholder="ej. Pérez" required />
+                <input
+                  v-model="form.primer_apellido"
+                  type="text"
+                  class="form-input"
+                  placeholder="ej. Pérez"
+                  @input="cleanNombreField('primer_apellido')"
+                  required
+                />
               </div>
               <div class="form-group">
                 <label class="form-label">Segundo Apellido</label>
-                <input v-model="form.segundo_apellido" type="text" class="form-input" placeholder="ej. Mamani" />
+                <input
+                  v-model="form.segundo_apellido"
+                  type="text"
+                  class="form-input"
+                  placeholder="ej. Mamani"
+                  @input="cleanNombreField('segundo_apellido')"
+                />
               </div>
               <div class="form-group">
                 <label class="form-label">Cédula de Identidad (CI) *</label>
-                <input v-model="form.ci" type="text" class="form-input" placeholder="ej. 4521678" required />
+                <input
+                  v-model="form.ci"
+                  type="text"
+                  class="form-input"
+                  placeholder="ej. 4521678"
+                  @input="cleanCiField"
+                  required
+                />
               </div>
               <div class="form-group">
-                <label class="form-label">Celular / Teléfono</label>
-                <input v-model="form.celular" type="text" class="form-input" placeholder="ej. 71234567" />
+                <label class="form-label">Celular (8 dígitos, inicia en 6 o 7)</label>
+                <input
+                  v-model="form.celular"
+                  type="text"
+                  class="form-input"
+                  placeholder="ej. 71234567"
+                  maxlength="8"
+                  @input="cleanCelularField"
+                />
+                <small v-if="celularError" class="input-hint error-hint">{{ celularError }}</small>
               </div>
               <div class="form-group form-group--full">
                 <label class="form-label">Dirección / Domicilio</label>
@@ -107,8 +148,8 @@
                 :class="{ 'modalidad-card--selected': form.modalidad === 'propietario_auto' }"
                 @click="form.modalidad = 'propietario_auto'"
               >
-                <div class="modalidad-card__icon">🚘</div>
-                <h4>Registrar Vehículo Propio (Propietario)</h4>
+                <div class="modalidad-card__badge">Propietario</div>
+                <h4>Registrar Vehículo Propio</h4>
                 <p>El afiliado registra un nuevo auto. Puede conducirlo él mismo o asignárselo a otro chofer.</p>
               </div>
 
@@ -117,7 +158,7 @@
                 :class="{ 'modalidad-card--selected': form.modalidad === 'chofer_existente' }"
                 @click="form.modalidad = 'chofer_existente'"
               >
-                <div class="modalidad-card__icon">👨‍✈️</div>
+                <div class="modalidad-card__badge">Chofer</div>
                 <h4>Registrar como Chofer</h4>
                 <p>El afiliado se registra como chofer y se le asigna a un vehículo existente en la flota.</p>
               </div>
@@ -138,15 +179,21 @@
               <div class="form-grid">
                 <div class="form-group">
                   <label class="form-label">Placa del Vehículo *</label>
-                  <input v-model="form.auto_placa" type="text" class="form-input" placeholder="ej. 1234-ABC" />
+                  <input
+                    v-model="form.auto_placa"
+                    type="text"
+                    class="form-input font-mono"
+                    placeholder="ej. 1234-ABC"
+                    @input="cleanPlacaField"
+                  />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Marca</label>
-                  <input v-model="form.auto_marca" type="text" class="form-input" placeholder="ej. Toyota" />
+                  <input v-model="form.auto_marca" type="text" class="form-input" placeholder="ej. Toyota" @input="cleanNombreField('auto_marca')" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Modelo</label>
-                  <input v-model="form.auto_modelo" type="text" class="form-input" placeholder="ej. Hiace" />
+                  <input v-model="form.auto_modelo" type="text" class="form-input" placeholder="ej. Hiace" @input="cleanNombreField('auto_modelo')" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Gestión / Año</label>
@@ -269,6 +316,7 @@ const currentStep = ref(1)
 const steps = ['Datos Personales', 'Modalidad & Vehículo', 'Confirmación']
 const submitting = ref(false)
 const error = ref(null)
+const celularError = ref('')
 
 const rolesDisponibles = ref([])
 const grupos = ref([])
@@ -299,6 +347,48 @@ const form = reactive({
   auto_id_existente: null,
 })
 
+// Helper para formatear cadenas a Title Case (Primeras letras mayúsculas, sin números)
+function toTitleCase(str) {
+  if (!str) return ''
+  // Eliminar dígitos números
+  const clean = str.replace(/[0-9]/g, '')
+  return clean.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())
+}
+
+function cleanNombreField(field) {
+  if (form[field]) {
+    form[field] = toTitleCase(form[field])
+  }
+}
+
+function cleanCelularField() {
+  if (form.celular) {
+    // Mantener sólo dígitos
+    form.celular = form.celular.replace(/\D/g, '').slice(0, 8)
+    if (form.celular.length > 0 && !['6', '7'].includes(form.celular[0])) {
+      celularError.value = 'El celular debe comenzar con 6 o 7.'
+    } else if (form.celular.length > 0 && form.celular.length < 8) {
+      celularError.value = 'El celular debe tener 8 dígitos.'
+    } else {
+      celularError.value = ''
+    }
+  } else {
+    celularError.value = ''
+  }
+}
+
+function cleanCiField() {
+  if (form.ci) {
+    form.ci = form.ci.toUpperCase().replace(/\s+/g, '')
+  }
+}
+
+function cleanPlacaField() {
+  if (form.auto_placa) {
+    form.auto_placa = form.auto_placa.toUpperCase().replace(/[^A-Z0-9\-]/g, '')
+  }
+}
+
 watch(isVisible, (val) => {
   if (val) {
     cargarAuxiliares().then(() => {
@@ -327,6 +417,7 @@ async function cargarAuxiliares() {
 function resetForm() {
   currentStep.value = 1
   error.value = null
+  celularError.value = ''
   Object.assign(form, {
     id: null,
     primer_nombre: '',
@@ -355,6 +446,7 @@ function resetForm() {
 function populateForm(data) {
   currentStep.value = 1
   error.value = null
+  celularError.value = ''
   form.id = data.id
   form.primer_nombre = data.primer_nombre || ''
   form.segundo_nombre = data.segundo_nombre || ''
@@ -364,7 +456,7 @@ function populateForm(data) {
   form.celular = data.celular || ''
   form.direccion = data.direccion || ''
   form.username = data.usuario?.username || ''
-  form.password = '' // opcional en edición
+  form.password = ''
   form.roles = [...(data.usuario?.roles || [])]
   form.grupo_id = grupos.value[0]?.id || ''
 
@@ -383,6 +475,10 @@ function nextStep() {
   if (currentStep.value === 1) {
     if (!form.primer_nombre || !form.primer_apellido || !form.ci || !form.username) {
       error.value = 'Por favor complete los campos obligatorios (*)'
+      return
+    }
+    if (form.celular && (form.celular.length !== 8 || !['6', '7'].includes(form.celular[0]))) {
+      error.value = 'El celular debe tener 8 dígitos y comenzar con 6 o 7 (ej. 71234567)'
       return
     }
     if (!isEditMode.value && !form.password) {
@@ -448,8 +544,8 @@ function close() {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -459,13 +555,13 @@ function close() {
 .modal-container {
   background: #ffffff;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-xl);
   width: 100%;
   max-width: 720px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
   overflow: hidden;
 }
 .modal-header {
@@ -476,15 +572,14 @@ function close() {
   align-items: center;
   background: var(--color-bg-tertiary);
 }
-.modal-title { font-size: 1.2rem; font-weight: 800; color: var(--color-text-primary); }
+.modal-title { font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary); }
 .modal-subtitle { font-size: 0.8rem; color: var(--color-text-secondary); }
 .modal-close-btn { background: none; border: none; font-size: 1.5rem; color: var(--color-text-muted); cursor: pointer; }
-.modal-close-btn:hover { color: var(--color-text-primary); }
 
 .modal-steps {
   display: flex;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
+  padding: 0.85rem 1.5rem;
   background: #f8fafc;
   border-bottom: 1px solid var(--color-border);
 }
@@ -492,14 +587,14 @@ function close() {
 .modal-step-item--active { opacity: 1; font-weight: 700; color: var(--color-primary-700); }
 .modal-step-item--completed { opacity: 0.9; color: var(--color-success); }
 .modal-step-num {
-  width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; color: var(--color-text-secondary);
+  width: 22px; height: 22px; border-radius: 50%; background: #e2e8f0; color: var(--color-text-secondary);
   display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;
 }
 .modal-step-item--active .modal-step-num { background: var(--color-primary-600); color: white; }
 .modal-step-item--completed .modal-step-num { background: var(--color-success); color: white; }
 
 .modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
-.step-title { font-size: 1rem; font-weight: 700; color: var(--color-primary-800); margin-bottom: 1rem; }
+.step-title { font-size: 0.95rem; font-weight: 700; color: var(--color-primary-800); margin-bottom: 1rem; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .form-group--full { grid-column: 1 / -1; }
@@ -511,27 +606,30 @@ function close() {
 .form-input:focus { border-color: var(--color-primary-600); outline: none; }
 .form-divider { margin: 1.5rem 0; border: none; border-top: 1px solid var(--color-border); }
 
+.input-hint { display: block; font-size: 0.75rem; margin-top: 0.25rem; }
+.error-hint { color: #dc2626; font-weight: 600; }
+
 .checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
 .checkbox-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; color: var(--color-text-primary); font-weight: 500; }
 
 .modalidad-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .modalidad-card {
-  padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-xl);
+  padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg);
   background: #ffffff; cursor: pointer; transition: all var(--transition-fast);
 }
-.modalidad-card:hover { border-color: var(--color-primary-400); transform: translateY(-2px); }
+.modalidad-card:hover { border-color: var(--color-primary-400); }
 .modalidad-card--selected { border-color: var(--color-primary-600); background: var(--color-primary-50); }
-.modalidad-card__icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
-.modalidad-card h4 { font-size: 0.95rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem; }
+.modalidad-card__badge { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.4rem; background: #e2e8f0; border-radius: var(--radius-sm); margin-bottom: 0.5rem; color: #475569; }
+.modalidad-card h4 { font-size: 0.9rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem; }
 .modalidad-card p { font-size: 0.75rem; color: var(--color-text-secondary); line-height: 1.3; }
 
-.subpanel { margin-top: 1.5rem; padding: 1.25rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-xl); }
-.subpanel-title { font-size: 0.9rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 1rem; }
+.subpanel { margin-top: 1.5rem; padding: 1.25rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.subpanel-title { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 1rem; }
 
-.chofer-toggle-panel { margin-top: 1rem; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.chofer-toggle-panel { margin-top: 1rem; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
 .toggle-label { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-size: 0.85rem; color: var(--color-text-primary); font-weight: 600; }
 
-.summary-box { background: var(--color-bg-tertiary); padding: 1.25rem; border-radius: var(--radius-xl); border: 1px solid var(--color-border); }
+.summary-box { background: var(--color-bg-tertiary); padding: 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--color-border); }
 .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.85rem; }
 .summary-label { color: var(--color-text-secondary); }
 .summary-value { color: var(--color-text-primary); text-align: right; font-weight: 600; }
@@ -541,7 +639,7 @@ function close() {
 .modal-error svg { width: 18px; height: 18px; flex-shrink: 0; }
 
 .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 0.75rem; background: var(--color-bg-tertiary); }
-.btn { padding: 0.55rem 1.2rem; font-size: 0.85rem; font-weight: 600; border-radius: var(--radius-lg); border: none; cursor: pointer; transition: all var(--transition-fast); }
+.btn { padding: 0.55rem 1.2rem; font-size: 0.85rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all var(--transition-fast); }
 .btn-primary { background: var(--color-primary-600); color: white; }
 .btn-primary:hover { background: var(--color-primary-700); }
 .btn-success { background: var(--color-success-bg); color: var(--color-success); border: 1px solid #bbf7d0; font-weight: 700; }
