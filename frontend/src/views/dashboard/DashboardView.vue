@@ -1,32 +1,18 @@
 <template>
   <div class="dashboard-view">
-    <div class="welcome-card">
-      <h1 class="welcome-title">
-        ¡Bienvenido, <span class="welcome-name">{{ userFullName }}</span>!
-      </h1>
-      <div class="roles-banner">
-        <span class="roles-label">Roles asignados a su perfil:</span>
-        <div class="role-chips">
-          <span v-for="role in roles" :key="role" class="badge" :class="getRoleBadgeClass(role)">
-            {{ role }}
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ─── ACCIONES POR ROL (Panel Dinámico) ────────────────────────── -->
+    <!-- ─── ACCIONES Y MÓDULOS DEL SISTEMA ────────────────────────── -->
     <div class="section-title">
-      <h2>Módulos y funciones disponibles</h2>
-      <p>Seleccione la opción requerida según sus atribuciones en el sindicato</p>
+      <h2>Módulos y Funciones Disponibles</h2>
+      <p>Seleccione el módulo que desea gestionar</p>
     </div>
 
     <div class="role-panels-grid">
       <!-- ─── Panel Inspector ────────────────────────────────────────── -->
-      <div v-if="hasRole('Inspector')" class="role-card">
+      <div v-if="hasRole('Inspector') || hasRole('Administrador')" class="role-card">
         <div class="role-card__header">
-          <span class="badge badge-inspector">Inspector</span>
-          <h3>Módulo de Inspección & Control de Asistencia</h3>
+          <h3>Control de Asistencia & Multas</h3>
         </div>
+        <p class="role-card__desc">Toma de asistencia en paradas, verificación de turnos y registro de infracciones.</p>
         <div class="role-card__actions">
           <button class="btn btn-primary" @click="$router.push('/dashboard/asistencias')" id="btn-inspector-asistencia">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -40,12 +26,11 @@
       </div>
 
       <!-- ─── Panel Tesorero ─────────────────────────────────────────── -->
-      <div v-if="hasRole('Tesorero')" class="role-card">
+      <div v-if="hasRole('Tesorero') || hasRole('Administrador')" class="role-card">
         <div class="role-card__header">
-          <span class="badge badge-tesorero">Tesorero</span>
-          <h3>Módulo de Tesorería & Cobros</h3>
+          <h3>Tesorería & Cobros</h3>
         </div>
-        <p class="role-card__desc">Administra cobros de cuotas mensuales, aportes sindicales y registros de pagos.</p>
+        <p class="role-card__desc">Administra cobros de cuotas mensuales, aportes sindicales y estados de cuenta.</p>
         <div class="role-card__actions">
           <button class="btn btn-primary" @click="$router.push('/dashboard/cobros')" id="btn-tesorero-pago">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -55,35 +40,33 @@
       </div>
 
       <!-- ─── Panel Jefe de Grupo ────────────────────────────────────── -->
-      <div v-if="hasRole('Jefe de Grupo')" class="role-card">
+      <div v-if="hasRole('Jefe de Grupo') || hasRole('Administrador')" class="role-card">
         <div class="role-card__header">
-          <span class="badge badge-chofer">Jefe de Grupo</span>
           <h3>Gestión del Grupo Asignado</h3>
         </div>
-        <p class="role-card__desc">Supervisa choferes, turnos y vehículos pertenecientes a su grupo de trabajo.</p>
+        <p class="role-card__desc">Supervisa choferes, turnos y obligaciones pertenecientes al grupo de trabajo.</p>
         <div class="role-card__actions" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
           <button class="btn btn-primary" @click="$router.push('/dashboard/obligaciones')" id="btn-jefe-grupo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Obligaciones y Aportes del Grupo
+            Obligaciones del Grupo
           </button>
           <button class="btn btn-secondary" @click="$router.push('/dashboard/auditoria')" id="btn-jefe-auditoria">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Bitácora & Auditoría Global
+            Bitácora de Auditorías
           </button>
         </div>
       </div>
 
       <!-- ─── Panel Chofer ───────────────────────────────────────────── -->
-      <div v-if="hasRole('Chofer')" class="role-card">
+      <div v-if="hasRole('Chofer') || hasRole('Administrador')" class="role-card">
         <div class="role-card__header">
-          <span class="badge badge-chofer">Chofer</span>
-          <h3>Perfil del Afiliado</h3>
+          <h3>Mi Perfil & Vehículos</h3>
         </div>
         <p class="role-card__desc">Consulte sus vehículos asignados, estado de cuenta y registro de asistencias.</p>
         <div class="role-card__actions">
           <button class="btn btn-primary" @click="$router.push('/dashboard/mi-perfil')" id="btn-chofer-vehiculos">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Mi Perfil & Vehículos
+            Ver Mi Perfil & Vehículos
           </button>
         </div>
       </div>
@@ -91,10 +74,9 @@
       <!-- ─── Panel Administrador ────────────────────────────────────── -->
       <div v-if="hasRole('Administrador')" class="role-card">
         <div class="role-card__header">
-          <span class="badge badge-admin">Administrador</span>
-          <h3>Administración General del Sistema</h3>
+          <h3>Administración de Afiliaciones</h3>
         </div>
-        <p class="role-card__desc">Gestión integral de usuarios, asignación de roles, vehículos y auditoría general.</p>
+        <p class="role-card__desc">Gestión integral de choferes, propietarios, vehículos y registro de afiliados.</p>
         <div class="role-card__actions">
           <button class="btn btn-primary" @click="$router.push('/dashboard/afiliados')" id="btn-admin-usuarios">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -109,43 +91,23 @@
 <script setup>
 import { useAuth } from '@/composables/useAuth'
 
-const { userFullName, roles, hasRole } = useAuth()
-
-function getRoleBadgeClass(role) {
-  const map = {
-    'Administrador': 'badge-admin',
-    'Inspector': 'badge-inspector',
-    'Tesorero': 'badge-tesorero',
-    'Jefe de Grupo': 'badge-chofer',
-    'Chofer': 'badge-chofer',
-  }
-  return map[role] || 'badge-chofer'
-}
+const { hasRole } = useAuth()
 </script>
 
 <style scoped>
-.welcome-card {
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 2rem;
+.dashboard-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
-.welcome-title { font-size: 1.5rem; font-weight: 800; color: var(--color-text-primary); }
-.welcome-name { color: var(--color-primary-700); }
 
-.roles-banner { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; }
-.roles-label { font-size: 0.85rem; color: var(--color-text-secondary); }
-.role-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-
-.section-title { margin-bottom: 1.25rem; }
-.section-title h2 { font-size: 1.25rem; font-weight: 700; color: var(--color-text-primary); }
-.section-title p { font-size: 0.85rem; color: var(--color-text-secondary); }
+.section-title { margin-bottom: 0.5rem; }
+.section-title h2 { font-size: 1.35rem; font-weight: 800; color: var(--color-text-primary); }
+.section-title p { font-size: 0.9rem; color: var(--color-text-secondary); margin-top: 0.25rem; }
 
 .role-panels-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.25rem;
 }
 
@@ -158,11 +120,13 @@ function getRoleBadgeClass(role) {
   flex-direction: column;
   justify-content: space-between;
   box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
 }
 .role-card:hover {
-  border-color: var(--color-primary-300);
+  border-color: var(--color-primary-400);
+  box-shadow: var(--shadow-md);
 }
-.role-card__header h3 { font-size: 1.05rem; font-weight: 700; color: var(--color-text-primary); margin-top: 0.4rem; }
-.role-card__desc { font-size: 0.85rem; color: var(--color-text-secondary); margin: 0.5rem 0 1.25rem 0; }
+.role-card__header h3 { font-size: 1.1rem; font-weight: 700; color: var(--color-text-primary); }
+.role-card__desc { font-size: 0.88rem; color: var(--color-text-secondary); margin: 0.6rem 0 1.25rem 0; line-height: 1.45; }
 .role-card__actions { display: flex; gap: 0.5rem; }
 </style>

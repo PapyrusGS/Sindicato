@@ -5,7 +5,7 @@
       @toggle="sidebarCollapsed = !sidebarCollapsed"
     />
     <div class="dashboard-layout__main">
-      <AppHeader @toggle-sidebar="sidebarCollapsed = !sidebarCollapsed" />
+      <AppHeader />
       <main class="dashboard-layout__content">
         <router-view v-slot="{ Component }">
           <transition name="fade-slide" mode="out-in">

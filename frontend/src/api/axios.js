@@ -1,8 +1,16 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_URL.includes('localhost')) {
+    return import.meta.env.VITE_API_URL
+  }
+  const hostname = window.location.hostname || 'localhost'
+  return `http://${hostname}:8000/api`
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://papserver.site/api',
+  baseURL: getBaseURL(),
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',

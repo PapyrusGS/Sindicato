@@ -1,13 +1,6 @@
 <template>
   <header class="app-header">
     <div class="app-header__left">
-      <button class="app-header__menu-btn" @click="$emit('toggle-sidebar')" id="btn-toggle-sidebar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-      </button>
       <h2 class="app-header__page-title">{{ pageTitle }}</h2>
     </div>
 
@@ -18,7 +11,6 @@
         </div>
         <div class="app-header__user-info">
           <span class="app-header__user-name">{{ userFullName }}</span>
-          <span class="app-header__user-roles">{{ userRolesFormatted }}</span>
         </div>
         <svg class="app-header__chevron" :class="{ 'app-header__chevron--open': showDropdown }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="6 9 12 15 18 9" />
@@ -30,9 +22,6 @@
           <div class="app-header__dropdown-header">
             <strong class="text-primary">{{ userFullName }}</strong>
             <span class="text-secondary">@{{ user?.username }}</span>
-            <div class="app-header__role-badges">
-              <span v-for="r in roles" :key="r" class="app-header__role-badge">{{ r }}</span>
-            </div>
           </div>
           <hr class="dropdown-divider" />
           <button class="app-header__dropdown-item" @click="handleLogout" id="btn-logout">
@@ -54,10 +43,8 @@ import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
-defineEmits(['toggle-sidebar'])
-
 const route = useRoute()
-const { user, userFullName, userRolesFormatted, roles, logout } = useAuth()
+const { user, userFullName, logout } = useAuth()
 const showDropdown = ref(false)
 
 const pageTitle = computed(() => route.meta.title || 'Dashboard')
@@ -89,23 +76,7 @@ async function handleLogout() {
 .app-header__left {
   display: flex;
   align-items: center;
-  gap: 1rem;
 }
-.app-header__menu-btn {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 0.4rem;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-.app-header__menu-btn:hover {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-}
-.app-header__menu-btn svg { width: 20px; height: 20px; }
 
 .app-header__page-title {
   font-size: 1.15rem;
@@ -146,7 +117,6 @@ async function handleLogout() {
 
 .app-header__user-info { display: flex; flex-direction: column; line-height: 1.2; }
 .app-header__user-name { font-size: 0.875rem; font-weight: 600; color: var(--color-text-primary); }
-.app-header__user-roles { font-size: 0.75rem; color: var(--color-primary-700); font-weight: 500; }
 .app-header__chevron { width: 16px; height: 16px; color: var(--color-text-muted); transition: transform var(--transition-fast); }
 .app-header__chevron--open { transform: rotate(180deg); }
 
@@ -154,7 +124,7 @@ async function handleLogout() {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: 240px;
+  width: 220px;
   background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
@@ -166,8 +136,6 @@ async function handleLogout() {
 }
 
 .app-header__dropdown-header { display: flex; flex-direction: column; font-size: 0.85rem; }
-.app-header__role-badges { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.4rem; }
-.app-header__role-badge { font-size: 0.65rem; padding: 0.15rem 0.4rem; background: var(--color-primary-50); color: var(--color-primary-800); border-radius: var(--radius-sm); border: 1px solid var(--color-primary-200); font-weight: 600; }
 .dropdown-divider { border: none; border-top: 1px solid var(--color-border); margin: 0.25rem 0; }
 
 .app-header__dropdown-item {

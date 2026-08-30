@@ -162,16 +162,28 @@ async function cargarPlanilla() {
   try {
     const res = await apiMobile.get('/asistencias/hoy')
     const data = res.data.data
-    lugares.value = data.lugares
-    if (lugares.value.length > 0) lugarSeleccionado.value = lugares.value[0].id
+    
+    if (data.lugar) {
+      lugares.value = [data.lugar]
+      lugarSeleccionado.value = data.lugar.id
+    } else {
+      lugares.value = [{ id: 1, nombre: 'Parada General' }]
+      lugarSeleccionado.value = 1
+    }
 
-    choferes.value = data.choferes.map(c => ({
-      chofer_id: c.chofer_id,
-      nombre_completo: c.nombre_completo,
-      placa: c.placa,
-      grupo_nombre: c.grupo_nombre,
-      asistencia: true,
-    }))
+    const grupoNombre = data.grupo?.nombre || 'Grupo Asignado'
+
+    if (Array.isArray(data.choferes)) {
+      choferes.value = data.choferes.map(c => ({
+        chofer_id: c.chofer_id,
+        nombre_completo: c.nombre_completo,
+        placa: c.placa,
+        grupo_nombre: c.grupo_nombre || grupoNombre,
+        asistencia: c.asistencia !== undefined ? c.asistencia : true,
+      }))
+    } else {
+      choferes.value = []
+    }
   } catch (err) {
     console.error('Error al cargar asistencia:', err)
   } finally {
@@ -248,7 +260,9 @@ async function registrarSancion() {
     formSancion.value.motivo = ''
     formSancion.value.sancion_detalle = ''
   } catch (err) {
-    alert(err.response?.data?.message || 'Error al registrar la sanción')
+    const msg = err.response?.data?.message || 'Error al registrar la sanción'
+    const details = err.response?.data?.errors ? '\n• ' + Object.values(err.response.data.errors).flat().join('\n• ') : ''
+    alert(msg + details)
   } finally {
     saving.value = false
   }

@@ -102,10 +102,10 @@
               <strong class="text-success">Bs. {{ Number(p.monto_total).toFixed(2) }}</strong>
             </div>
             <div class="info-row" style="margin-top:0.3rem;">
-              <span>Chofer: {{ p.chofer_nombre }}</span>
+              <span>Chofer: {{ p.chofer?.persona?.nombre_completo || p.chofer_nombre || 'N/A' }}</span>
               <span class="tag-badge">{{ p.metodo_pago }}</span>
             </div>
-            <small class="text-muted">Cobrado por: {{ p.cobrador_nombre }}</small>
+            <small class="text-muted">Cobrado por: {{ p.cobrador_persona?.nombre_completo || p.cobrador_nombre || 'Tesorero' }}</small>
           </div>
         </div>
         <div v-else class="empty-msg">No se registraron cobros en caja.</div>
@@ -145,7 +145,7 @@ async function cargarChoferes() {
   loading.value = true
   try {
     const res = await apiMobile.get('/cobros/choferes')
-    choferesElegibles.value = res.data.data
+    choferesElegibles.value = res.data.data.choferes || (Array.isArray(res.data.data) ? res.data.data : [])
   } catch (err) {
     console.error('Error al cargar choferes elegibles:', err)
   } finally {
@@ -169,7 +169,7 @@ async function cargarEstadoCuenta() {
 async function cargarHistorial() {
   try {
     const res = await apiMobile.get('/cobros/historial')
-    historialPagos.value = res.data.data
+    historialPagos.value = res.data.data.pagos || (Array.isArray(res.data.data) ? res.data.data : [])
   } catch (err) {
     console.error('Error al cargar historial de caja:', err)
   }
@@ -199,7 +199,9 @@ async function procesarPago() {
     cargarEstadoCuenta()
     cargarHistorial()
   } catch (err) {
-    alert(err.response?.data?.message || 'Error al procesar el pago')
+    const msg = err.response?.data?.message || 'Error al procesar el pago'
+    const details = err.response?.data?.errors ? '\n• ' + Object.values(err.response.data.errors).flat().join('\n• ') : ''
+    alert(msg + details)
   } finally {
     processing.value = false
   }

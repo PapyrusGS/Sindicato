@@ -117,10 +117,10 @@ async function cargar() {
       apiMobile.get('/obligaciones'),
       apiMobile.get('/auditorias'),
     ])
-    grupos.value = resAux.data.data.grupos
+    grupos.value = resAux.data.data.grupos || (Array.isArray(resAux.data.data) ? resAux.data.data : [])
     if (grupos.value.length > 0) formObligacion.value.grupo_id = grupos.value[0].id
-    obligaciones.value = resOb.data.data
-    auditorias.value = resAud.data.data.data || resAud.data.data
+    obligaciones.value = resOb.data.data.obligaciones || (Array.isArray(resOb.data.data) ? resOb.data.data : [])
+    auditorias.value = resAud.data.data.auditorias || (Array.isArray(resAud.data.data) ? resAud.data.data : [])
   } catch (err) {
     console.error('Error al cargar panel de administración móvil:', err)
   }
@@ -134,7 +134,9 @@ async function crearObligacion() {
     formObligacion.value.concepto = ''
     cargar()
   } catch (err) {
-    alert(err.response?.data?.message || 'Error al crear la obligación')
+    const msg = err.response?.data?.message || 'Error al crear la obligación'
+    const details = err.response?.data?.errors ? '\n• ' + Object.values(err.response.data.errors).flat().join('\n• ') : ''
+    alert(msg + details)
   } finally {
     saving.value = false
   }
