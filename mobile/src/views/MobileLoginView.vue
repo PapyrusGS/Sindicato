@@ -48,10 +48,10 @@
             v-model="apiUrl"
             type="text"
             class="form-input font-mono"
-            placeholder="http://localhost:8000/api"
+            placeholder="https://papserver.site/api"
             @change="saveApiUrl"
           />
-          <small class="text-muted">Servidor Local: http://localhost:8000/api o IP local de su red (ej. http://192.168.1.50:8000/api)</small>
+          <small class="text-muted">Servidor en Producción: https://papserver.site/api o IP local de su red (ej. http://192.168.1.50:8000/api)</small>
         </div>
       </div>
 

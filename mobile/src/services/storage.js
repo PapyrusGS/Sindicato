@@ -12,7 +12,7 @@ const STORAGE_KEYS = {
 export const mobileStorage = {
   // Configuración de IP del Servidor Backend
   getApiUrl() {
-    return localStorage.getItem(STORAGE_KEYS.API_URL) || 'http://localhost:8000/api'
+    return localStorage.getItem(STORAGE_KEYS.API_URL) || 'https://papserver.site/api'
   },
   setApiUrl(url) {
     let cleanUrl = url.trim()
