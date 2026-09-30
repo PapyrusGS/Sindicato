@@ -6,6 +6,7 @@ use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -48,6 +49,11 @@ class Usuario extends Authenticatable
         return $this->belongsToMany(Rol::class, 'usuario_roles', 'usuario_id', 'rol_id')
                     ->withPivot('estado', 'usuario_audit', 'fecha_audit')
                     ->withTimestamps();
+    }
+
+    public function notificaciones(): HasMany
+    {
+        return $this->hasMany(Notificacion::class, 'usuario_id')->orderBy('created_at', 'desc');
     }
 
     // ─── Helpers ────────────────────────────────────────────────────

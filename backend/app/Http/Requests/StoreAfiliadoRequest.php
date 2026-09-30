@@ -15,15 +15,18 @@ class StoreAfiliadoRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'primer_nombre'    => StringFormatter::titleCase($this->primer_nombre),
-            'segundo_nombre'   => StringFormatter::titleCase($this->segundo_nombre),
-            'primer_apellido'  => StringFormatter::titleCase($this->primer_apellido),
-            'segundo_apellido' => StringFormatter::titleCase($this->segundo_apellido),
-            'ci'               => strtoupper(trim($this->ci ?? '')),
-            'celular'          => trim($this->celular ?? '') !== '' ? trim($this->celular) : null,
-            'auto_placa'       => StringFormatter::formatPlaca($this->auto_placa),
-            'auto_marca'       => StringFormatter::titleCase($this->auto_marca),
-            'auto_modelo'      => StringFormatter::titleCase($this->auto_modelo),
+            'primer_nombre'        => StringFormatter::titleCase($this->primer_nombre),
+            'segundo_nombre'       => StringFormatter::titleCase($this->segundo_nombre),
+            'primer_apellido'      => StringFormatter::titleCase($this->primer_apellido),
+            'segundo_apellido'     => StringFormatter::titleCase($this->segundo_apellido),
+            'ci'                   => strtoupper(trim($this->ci ?? '')),
+            'celular'              => trim($this->celular ?? '') !== '' ? trim($this->celular) : null,
+            'auto_placa'           => StringFormatter::formatPlaca($this->auto_placa),
+            'auto_marca'           => StringFormatter::titleCase($this->auto_marca),
+            'auto_modelo'          => StringFormatter::titleCase($this->auto_modelo),
+            'es_el_chofer'         => filter_var($this->es_el_chofer ?? false, FILTER_VALIDATE_BOOLEAN),
+            'chofer_id_asignado'   => !empty($this->chofer_id_asignado) ? (int)$this->chofer_id_asignado : null,
+            'auto_id_existente'    => !empty($this->auto_id_existente) ? (int)$this->auto_id_existente : null,
         ]);
     }
 

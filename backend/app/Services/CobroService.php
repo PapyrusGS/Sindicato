@@ -9,11 +9,19 @@ use App\Models\ObligacionChofer;
 use App\Models\Pago;
 use App\Models\PagoMulta;
 use App\Models\PagoObligacion;
+use App\Models\SolicitudCambioPago;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\DB;
 
 class CobroService
 {
+    protected NotificacionService $notificacionService;
+
+    public function __construct(NotificacionService $notificacionService)
+    {
+        $this->notificacionService = $notificacionService;
+    }
+
     protected function roles(Usuario $usuario): array
     {
         return $usuario->roles()->pluck('nombre')->toArray();
@@ -230,6 +238,304 @@ class CobroService
     }
 
     /**
+     * Revertir internamente las obligaciones y multas vinculadas a un pago y marcarlo inactivo.
+     */
+    protected function ejecutarReversionPago(Pago $pago, string $motivoDetalle, Usuario $usuarioAuth): void
+    {
+        // 1. Revertir Obligaciones de Grupo
+        foreach ($pago->pagoObligaciones as $po) {
+            $obChofer = ObligacionChofer::find($po->obligacion_chofer_id);
+            if ($obChofer) {
+                $montoRestado = max(0.00, (float)$obChofer->monto_pagado - (float)$po->monto_abonado);
+                $nuevoEstado = ($montoRestado <= 0) ? 'PENDIENTE' : 'PARCIAL';
+                $obChofer->update([
+                    'monto_pagado' => $montoRestado,
+                    'estado_pago'  => $nuevoEstado,
+                    'fecha_pago'   => ($montoRestado <= 0) ? null : $obChofer->fecha_pago,
+                    'usuarioA'     => $usuarioAuth->username,
+                    'fechaA'       => now(),
+                ]);
+            }
+        }
+
+        // 2. Revertir Multas Económicas
+        foreach ($pago->pagoMultas as $pm) {
+            $multa = Multa::find($pm->multa_id);
+            if ($multa) {
+                $multa->update([
+                    'estado_pago' => 'PENDIENTE',
+                    'usuarioA'    => $usuarioAuth->username,
+                    'fechaA'      => now(),
+                ]);
+            }
+        }
+
+        // 3. Desactivar el Pago y registrar la justificación
+        $pago->update([
+            'estado'      => false,
+            'observacion' => trim(($pago->observacion ?? '') . ' [' . $motivoDetalle . ']'),
+            'usuarioA'    => $usuarioAuth->username,
+            'fechaA'      => now(),
+        ]);
+    }
+
+    /**
+     * Anular cobro directamente si está dentro de la ventana de gracia de 90 segundos (1:30 min).
+     */
+    public function anularCobroDirecto(int $pagoId, Usuario $usuarioAuth): Pago
+    {
+        return DB::transaction(function () use ($pagoId, $usuarioAuth) {
+            $pago = Pago::with(['pagoObligaciones', 'pagoMultas', 'chofer.persona'])->findOrFail($pagoId);
+
+            if (!$pago->estado) {
+                throw new \InvalidArgumentException('El cobro ya se encuentra anulado previamente.');
+            }
+
+            // Validar ventana de gracia (90 segundos = 1:30 min)
+            $segundosTranscurridos = (int) abs(now()->diffInSeconds($pago->created_at));
+            if ($segundosTranscurridos > 90) {
+                throw new \InvalidArgumentException("El tiempo de gracia de 1:30 minutos ha expirado ({$segundosTranscurridos} segundos transcurridos). Debe enviar una solicitud de cambio al chofer y jefe de grupo para autorizar la anulación.");
+            }
+
+            // Validar permiso: Quien cobró o Administrador
+            $rolesUser = $this->roles($usuarioAuth);
+            $esAdmin = in_array('Administrador', $rolesUser);
+            if ($pago->cobrador_persona_id !== $usuarioAuth->persona_id && !$esAdmin) {
+                throw new \InvalidArgumentException('Solo el usuario que registró este cobro o un Administrador pueden anularlo directamente.');
+            }
+
+            $this->ejecutarReversionPago(
+                pago: $pago,
+                motivoDetalle: 'ANULACIÓN DIRECTA EN VENTANA DE GRACIA POR ' . $usuarioAuth->username,
+                usuarioAuth: $usuarioAuth
+            );
+
+            return $pago->fresh([
+                'chofer.persona',
+                'cobradorPersona',
+                'pagoObligaciones.obligacionChofer.obligacion',
+                'pagoMultas.multa',
+                'solicitudesCambio',
+            ]);
+        });
+    }
+
+    /**
+     * Solicitar cambio o anulación de un pago una vez excedido el tiempo de gracia.
+     * Envía notificación inmediata al Chofer (quien debe aceptar/denegar) y al Jefe de Grupo.
+     */
+    public function solicitarCambioPago(int $pagoId, string $motivo, Usuario $usuarioAuth): SolicitudCambioPago
+    {
+        return DB::transaction(function () use ($pagoId, $motivo, $usuarioAuth) {
+            $pago = Pago::with(['chofer.persona', 'cobradorPersona'])->findOrFail($pagoId);
+
+            if (!$pago->estado) {
+                throw new \InvalidArgumentException('No se puede solicitar cambio para un cobro que ya ha sido anulado.');
+            }
+
+            // Validar si ya existe solicitud pendiente
+            $solicitudExistente = SolicitudCambioPago::where('pago_id', $pagoId)
+                ->where('estado', 'PENDIENTE')
+                ->exists();
+
+            if ($solicitudExistente) {
+                throw new \InvalidArgumentException('Ya existe una solicitud de cambio pendiente de respuesta para este cobro.');
+            }
+
+            // Identificar grupo del chofer y Jefe de Grupo
+            $grupoId = ChoferAuto::where('chofer_id', $pago->chofer_id)->value('grupo_id');
+            $jefePersonaId = null;
+            $jefeUsuario = null;
+
+            if ($grupoId) {
+                $jefeChoferAuto = ChoferAuto::where('grupo_id', $grupoId)
+                    ->whereHas('chofer.persona.usuario.roles', fn($r) => $r->where('nombre', 'Jefe de Grupo'))
+                    ->with('chofer.persona.usuario')
+                    ->first();
+
+                $jefePersonaId = $jefeChoferAuto?->chofer?->persona_id;
+                $jefeUsuario = $jefeChoferAuto?->chofer?->persona?->usuario;
+            }
+
+            $solicitud = SolicitudCambioPago::create([
+                'pago_id'                => $pago->id,
+                'solicitante_persona_id' => $usuarioAuth->persona_id,
+                'chofer_id'              => $pago->chofer_id,
+                'jefe_persona_id'        => $jefePersonaId,
+                'motivo'                 => trim($motivo),
+                'estado'                 => 'PENDIENTE',
+                'usuarioA'               => $usuarioAuth->username,
+                'fechaA'                 => now(),
+            ]);
+
+            $choferPersona = $pago->chofer?->persona;
+            $choferUsuario = $choferPersona ? Usuario::where('persona_id', $choferPersona->id)->first() : null;
+            $solicitanteNombre = $usuarioAuth->nombre_completo;
+
+            // 1. Notificar al Chofer (debe aceptar o denegar)
+            if ($choferUsuario) {
+                $this->notificacionService->crearNotificacion(
+                    usuarioId: $choferUsuario->id,
+                    titulo: '⚠️ Solicitud de Cambio/Anulación de Cobro',
+                    mensaje: "El tesorero {$solicitanteNombre} solicita anular el cobro #{$pago->id} por Bs. " . number_format($pago->monto_total, 2) . " registrado a tu nombre. Motivo: {$motivo}. Por favor revisa y acepta o deniega esta solicitud.",
+                    tipo: 'SOLICITUD_CAMBIO_PAGO',
+                    data: [
+                        'solicitud_id' => $solicitud->id,
+                        'pago_id'      => $pago->id,
+                        'monto'        => (float) $pago->monto_total,
+                        'motivo'       => $motivo,
+                        'solicitante'  => $solicitanteNombre,
+                    ]
+                );
+            }
+
+            // 2. Notificar al Jefe de Grupo (para información y seguimiento)
+            if ($jefeUsuario && (!$choferUsuario || $jefeUsuario->id !== $choferUsuario->id)) {
+                $this->notificacionService->crearNotificacion(
+                    usuarioId: $jefeUsuario->id,
+                    titulo: '📢 Aviso: Solicitud de Cambio de Pago en tu Grupo',
+                    mensaje: "El tesorero {$solicitanteNombre} inició una solicitud de anulación del cobro #{$pago->id} (Bs. " . number_format($pago->monto_total, 2) . ") del chofer {$choferPersona?->nombre_completo}. Motivo: {$motivo}.",
+                    tipo: 'INFO',
+                    data: [
+                        'solicitud_id' => $solicitud->id,
+                        'pago_id'      => $pago->id,
+                        'chofer'       => $choferPersona?->nombre_completo,
+                    ]
+                );
+            }
+
+            return $solicitud->load(['pago.chofer.persona', 'solicitantePersona']);
+        });
+    }
+
+    /**
+     * Responder a una solicitud de cambio (Aceptar o Denegar).
+     * Si el chofer acepta, se anula el pago y se restauran las deudas.
+     */
+    public function responderSolicitud(int $solicitudId, string $accion, ?string $observacion, Usuario $usuarioAuth): SolicitudCambioPago
+    {
+        return DB::transaction(function () use ($solicitudId, $accion, $observacion, $usuarioAuth) {
+            $solicitud = SolicitudCambioPago::with([
+                'pago.pagoObligaciones',
+                'pago.pagoMultas',
+                'chofer.persona',
+                'solicitantePersona.usuario',
+            ])->findOrFail($solicitudId);
+
+            if ($solicitud->estado !== 'PENDIENTE') {
+                throw new \InvalidArgumentException('Esta solicitud ya fue resuelta anteriormente con estado: ' . $solicitud->estado);
+            }
+
+            $rolesUser = $this->roles($usuarioAuth);
+            $esAdmin = in_array('Administrador', $rolesUser);
+            $esJefe = in_array('Jefe de Grupo', $rolesUser);
+            $esElChofer = ($usuarioAuth->persona_id === $solicitud->chofer?->persona_id);
+
+            if (!$esElChofer && !$esJefe && !$esAdmin) {
+                throw new \InvalidArgumentException('No tienes permisos para resolver esta solicitud. Solo el chofer titular, el jefe de grupo o un administrador pueden responderla.');
+            }
+
+            $accionNorm = strtoupper($accion);
+            if (!in_array($accionNorm, ['ACEPTAR', 'DENEGAR'])) {
+                throw new \InvalidArgumentException('La acción debe ser ACEPTAR o DENEGAR.');
+            }
+
+            $choferNombre = $solicitud->chofer?->persona?->nombre_completo ?? 'Chofer';
+            $pago = $solicitud->pago;
+            $tesoreroUsuario = $solicitud->solicitantePersona?->usuario;
+
+            if ($accionNorm === 'ACEPTAR') {
+                // Aceptada: Anular pago y restaurar deudas pendientes
+                $this->ejecutarReversionPago(
+                    pago: $pago,
+                    motivoDetalle: 'ANULACIÓN APROBADA POR CHOFER ' . $usuarioAuth->username . ($observacion ? ': ' . $observacion : ''),
+                    usuarioAuth: $usuarioAuth
+                );
+
+                $solicitud->update([
+                    'estado'                    => 'APROBADO',
+                    'respuesta_observacion'     => $observacion,
+                    'respondido_por_persona_id' => $usuarioAuth->persona_id,
+                    'fecha_respuesta'           => now(),
+                ]);
+
+                // Notificar al Tesorero
+                if ($tesoreroUsuario) {
+                    $this->notificacionService->crearNotificacion(
+                        usuarioId: $tesoreroUsuario->id,
+                        titulo: '✅ Solicitud de Cambio Aprobada',
+                        mensaje: "El chofer {$choferNombre} ha ACEPTADO la solicitud de anulación del cobro #{$pago->id} (Bs. " . number_format($pago->monto_total, 2) . "). El cobro fue anulado y las deudas quedaron restauradas.",
+                        tipo: 'INFO',
+                        data: [
+                            'solicitud_id' => $solicitud->id,
+                            'pago_id'      => $pago->id,
+                            'estado'       => 'APROBADO',
+                        ]
+                    );
+                }
+            } else {
+                // Denegada: El pago permanece activo
+                $solicitud->update([
+                    'estado'                    => 'RECHAZADO',
+                    'respuesta_observacion'     => $observacion,
+                    'respondido_por_persona_id' => $usuarioAuth->persona_id,
+                    'fecha_respuesta'           => now(),
+                ]);
+
+                // Notificar al Tesorero
+                if ($tesoreroUsuario) {
+                    $this->notificacionService->crearNotificacion(
+                        usuarioId: $tesoreroUsuario->id,
+                        titulo: '❌ Solicitud de Cambio Denegada',
+                        mensaje: "El chofer {$choferNombre} ha DENEGADO la solicitud de cambio del cobro #{$pago->id}." . ($observacion ? " Motivo: {$observacion}" : ""),
+                        tipo: 'ALERTA',
+                        data: [
+                            'solicitud_id' => $solicitud->id,
+                            'pago_id'      => $pago->id,
+                            'estado'       => 'RECHAZADO',
+                            'motivo'       => $observacion,
+                        ]
+                    );
+                }
+            }
+
+            return $solicitud->fresh(['pago', 'chofer.persona', 'solicitantePersona', 'respondidoPorPersona']);
+        });
+    }
+
+    /**
+     * Listar solicitudes de cambio pendientes relevantes para el usuario autenticado.
+     */
+    public function listarSolicitudesPendientes(Usuario $usuarioAuth)
+    {
+        $query = SolicitudCambioPago::with([
+            'pago.pagoObligaciones.obligacionChofer.obligacion',
+            'pago.pagoMultas.multa',
+            'chofer.persona',
+            'solicitantePersona',
+        ])->where('estado', 'PENDIENTE');
+
+        $rolesUser = $this->roles($usuarioAuth);
+        $esAdmin = in_array('Administrador', $rolesUser);
+        $esJefe = in_array('Jefe de Grupo', $rolesUser);
+
+        // Si es chofer o tesorero (no admin ni jefe global)
+        if (!$esAdmin && !$esJefe) {
+            $chofer = Chofer::where('persona_id', $usuarioAuth->persona_id)->first();
+            if ($chofer) {
+                $query->where(function ($q) use ($chofer, $usuarioAuth) {
+                    $q->where('chofer_id', $chofer->id)
+                      ->orWhere('solicitante_persona_id', $usuarioAuth->persona_id);
+                });
+            } else {
+                $query->where('solicitante_persona_id', $usuarioAuth->persona_id);
+            }
+        }
+
+        return $query->orderBy('created_at', 'desc')->get();
+    }
+
+    /**
      * Listar el historial de pagos y cobros realizados.
      */
     public function listarHistorialPagos(array $filters, Usuario $usuarioAuth)
@@ -239,7 +545,14 @@ class CobroService
             'cobradorPersona',
             'pagoObligaciones.obligacionChofer.obligacion',
             'pagoMultas.multa',
-        ])->where('estado', true);
+            'solicitudesCambio.solicitantePersona',
+            'solicitudesCambio.respondidoPorPersona',
+        ]);
+
+        // Filtrar por estado si se especifica, por defecto no ocultamos anulados para visibilidad
+        if (isset($filters['estado'])) {
+            $query->where('estado', filter_var($filters['estado'], FILTER_VALIDATE_BOOLEAN));
+        }
 
         $rolesUser = $this->roles($usuarioAuth);
         $esAdmin = in_array('Administrador', $rolesUser);
@@ -270,6 +583,6 @@ class CobroService
             });
         }
 
-        return $query->orderBy('fecha_pago', 'desc')->paginate(20);
+        return $query->orderBy('created_at', 'desc')->paginate(20);
     }
 }

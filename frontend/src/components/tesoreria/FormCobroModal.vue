@@ -299,8 +299,8 @@ async function guardarCobro() {
       deudas_multas: deudasMultas,
     }
 
-    await cobroApi.procesarCobro(payload)
-    emit('saved')
+    const res = await cobroApi.procesarCobro(payload)
+    emit('saved', res.data.data)
   } catch (err) {
     errorMsg.value = err.response?.data?.message || 'Error al procesar el cobro'
   } finally {

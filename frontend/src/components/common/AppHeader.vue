@@ -5,6 +5,9 @@
     </div>
 
     <div class="app-header__right">
+      <!-- Notification Bell -->
+      <NotificationBell />
+
       <div class="app-header__user" @click="showDropdown = !showDropdown" id="btn-user-menu">
         <div class="app-header__avatar">
           {{ userInitials }}
@@ -42,6 +45,7 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import NotificationBell from '@/components/common/NotificationBell.vue'
 
 const route = useRoute()
 const { user, userFullName, logout } = useAuth()
@@ -84,7 +88,12 @@ async function handleLogout() {
   color: var(--color-text-primary);
 }
 
-.app-header__right { position: relative; }
+.app-header__right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
 
 .app-header__user {
   display: flex;

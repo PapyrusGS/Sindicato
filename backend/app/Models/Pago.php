@@ -36,6 +36,11 @@ class Pago extends Model
         ];
     }
 
+    protected $appends = [
+        'puede_anular_directo',
+        'segundos_restantes_gracia',
+    ];
+
     // ─── Relaciones ─────────────────────────────────────────────────
 
     public function chofer(): BelongsTo
@@ -56,5 +61,25 @@ class Pago extends Model
     public function pagoMultas(): HasMany
     {
         return $this->hasMany(PagoMulta::class, 'pago_id');
+    }
+
+    public function solicitudesCambio(): HasMany
+    {
+        return $this->hasMany(SolicitudCambioPago::class, 'pago_id');
+    }
+
+    // ─── Helpers de Ventana de Gracia (90s / 1:30 min) ───────────────
+
+    public function getPuedeAnularDirectoAttribute(): bool
+    {
+        if (!$this->estado || !$this->created_at) return false;
+        return abs(now()->diffInSeconds($this->created_at)) <= 90;
+    }
+
+    public function getSegundosRestantesGraciaAttribute(): int
+    {
+        if (!$this->estado || !$this->created_at) return 0;
+        $segundos = 90 - abs(now()->diffInSeconds($this->created_at));
+        return max(0, (int) $segundos);
     }
 }

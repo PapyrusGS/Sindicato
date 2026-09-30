@@ -42,7 +42,7 @@
             <h3 class="step-title">1. Información Personal y Credenciales</h3>
             
             <div class="form-grid">
-              <!-- Primer Nombre (Bloqueo Físico de Números + Instant Title Case) -->
+              <!-- Primer Nombre -->
               <div class="form-group">
                 <label class="form-label">Primer Nombre *</label>
                 <input
@@ -53,7 +53,7 @@
                   @input="onNombreInput('primer_nombre')"
                   required
                 />
-                <small v-if="form.primer_nombre" class="input-hint success-hint">✓ Solo letras (Primera Mayúscula)</small>
+                <small v-if="form.primer_nombre" class="input-hint success-hint">✓ Solo letras</small>
               </div>
 
               <!-- Segundo Nombre -->
@@ -80,7 +80,7 @@
                   @input="onNombreInput('primer_apellido')"
                   required
                 />
-                <small v-if="form.primer_apellido" class="input-hint success-hint">✓ Solo letras (Primera Mayúscula)</small>
+                <small v-if="form.primer_apellido" class="input-hint success-hint">✓ Solo letras</small>
               </div>
 
               <!-- Segundo Apellido -->
@@ -96,7 +96,7 @@
                 <small v-if="form.segundo_apellido" class="input-hint success-hint">✓ Solo letras</small>
               </div>
 
-              <!-- Cédula de Identidad (Bloqueo Físico de Letras Raras) -->
+              <!-- Cédula de Identidad -->
               <div class="form-group">
                 <label class="form-label">Cédula de Identidad (CI) *</label>
                 <input
@@ -107,12 +107,12 @@
                   @input="onCiInput"
                   required
                 />
-                <small v-if="form.ci" class="input-hint success-hint">✓ Formato CI válido</small>
+                <small v-if="form.ci" class="input-hint success-hint">✓ CI ingresado</small>
               </div>
 
-              <!-- Celular (Bloqueo Físico de Letras + Validación Instantánea 8 dígitos empezando en 6/7) -->
+              <!-- Celular -->
               <div class="form-group">
-                <label class="form-label">Celular (8 dígitos, debe iniciar en 6 o 7)</label>
+                <label class="form-label">Celular (8 dígitos, empezar en 6 o 7)</label>
                 <input
                   v-model="form.celular"
                   type="text"
@@ -122,7 +122,7 @@
                   @input="onCelularInput"
                 />
                 <small v-if="celularInstantError" class="input-hint error-hint">⚠️ {{ celularInstantError }}</small>
-                <small v-else-if="form.celular && form.celular.length === 8" class="input-hint success-hint">✓ 8 dígitos válidos (Empieza en {{ form.celular[0] }})</small>
+                <small v-else-if="form.celular && form.celular.length === 8" class="input-hint success-hint">✓ 8 dígitos válidos</small>
               </div>
 
               <div class="form-group form-group--full">
@@ -204,18 +204,18 @@
                     placeholder="ej. 1234-ABC"
                     @input="onPlacaInput"
                   />
-                  <small v-if="form.auto_placa" class="input-hint success-hint">✓ Mayúsculas automáticas</small>
+                  <small v-if="form.auto_placa" class="input-hint success-hint">✓ Formato placa</small>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Marca</label>
+                  <label class="form-label">Marca *</label>
                   <input v-model="form.auto_marca" type="text" class="form-input" placeholder="ej. Toyota" @input="onNombreInput('auto_marca')" />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Modelo</label>
+                  <label class="form-label">Modelo *</label>
                   <input v-model="form.auto_modelo" type="text" class="form-input" placeholder="ej. Hiace" @input="onNombreInput('auto_modelo')" />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Gestión / Año</label>
+                  <label class="form-label">Gestión / Año *</label>
                   <input v-model.number="form.auto_gestion" type="number" class="form-input" placeholder="ej. 2022" />
                 </div>
               </div>
@@ -269,7 +269,7 @@
               </div>
               <div class="summary-row">
                 <span class="summary-label">Usuario / Username:</span>
-                <span class="summary-value">@{{ form.username }}</span>
+                <span class="summary-value font-mono">@{{ form.username }}</span>
               </div>
               <div class="summary-row">
                 <span class="summary-label">Roles Asignados:</span>
@@ -278,16 +278,32 @@
                 </span>
               </div>
               <div class="summary-row">
-                <span class="summary-label">Grupo:</span>
+                <span class="summary-label">Grupo de Trabajo:</span>
                 <span class="summary-value">{{ getNombreGrupo(form.grupo_id) }}</span>
               </div>
 
-              <hr />
+              <hr style="border:none; border-top:1px solid #e2e8f0; margin:0.75rem 0;" />
 
-              <div v-if="form.auto_placa">
+              <div v-if="form.modalidad === 'propietario_auto' || form.auto_placa">
                 <div class="summary-row">
-                  <span class="summary-label">Vehículo:</span>
+                  <span class="summary-label">Vehículo a Registrar:</span>
                   <strong class="summary-value">{{ form.auto_placa }} — {{ form.auto_marca }} {{ form.auto_modelo }} ({{ form.auto_gestion }})</strong>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Conductor del Vehículo:</span>
+                  <span class="summary-value">{{ form.es_el_chofer ? 'El mismo afiliado (Chofer & Propietario)' : 'Chofer asignado de la flota' }}</span>
+                </div>
+              </div>
+              <div v-else-if="form.auto_id_existente">
+                <div class="summary-row">
+                  <span class="summary-label">Vehículo Asignado:</span>
+                  <strong class="summary-value">{{ getVehiculoExistenteTexto(form.auto_id_existente) }}</strong>
+                </div>
+              </div>
+              <div v-else>
+                <div class="summary-row">
+                  <span class="summary-label">Modalidad:</span>
+                  <span class="summary-value">Chofer Afiliado (Sin vehículo asignado temporalmente)</span>
                 </div>
               </div>
             </div>
@@ -304,8 +320,8 @@
             Siguiente
           </button>
 
-          <button v-if="currentStep === 3" class="btn btn-success" @click="submit" :disabled="submitting || celularInstantError">
-            <span v-if="submitting">Guardando...</span>
+          <button v-if="currentStep === 3" class="btn btn-success" @click="submit" :disabled="submitting">
+            <span v-if="submitting">Guardando Registro...</span>
             <span v-else>{{ isEditMode ? 'Guardar Cambios' : 'Confirmar y Registrar Afiliación' }}</span>
           </button>
         </div>
@@ -411,10 +427,14 @@ async function cargarAuxiliares() {
   try {
     const res = await afiliacionApi.obtenerAuxiliares()
     const data = res.data.data
-    rolesDisponibles.value = data.roles.filter(r => r.nombre !== 'Administrador')
-    grupos.value = data.grupos
-    choferesDisponibles.value = data.choferes
-    autosDisponibles.value = data.autos
+    rolesDisponibles.value = (data.roles || []).filter(r => r.nombre !== 'Administrador')
+    grupos.value = data.grupos || []
+    choferesDisponibles.value = data.choferes || []
+    autosDisponibles.value = data.autos || []
+
+    if (!form.grupo_id && grupos.value.length > 0) {
+      form.grupo_id = grupos.value[0].id
+    }
   } catch (err) {
     error.value = 'Error al cargar opciones del formulario'
   }
@@ -478,31 +498,41 @@ function populateForm(data) {
 
 function nextStep() {
   error.value = null
+
   if (currentStep.value === 1) {
     if (!form.primer_nombre || !form.primer_apellido || !form.ci || !form.username) {
-      error.value = 'Por favor complete los campos obligatorios (*)'
+      error.value = 'Por favor complete todos los campos obligatorios (*) del Paso 1.'
       return
     }
     if (form.celular && (form.celular.length !== 8 || !['6', '7'].includes(form.celular[0]))) {
-      error.value = 'El celular debe tener 8 dígitos y comenzar con 6 o 7 (ej. 71234567)'
+      error.value = 'El celular debe tener 8 dígitos y comenzar con 6 o 7 (ej. 71234567).'
       return
     }
     if (!isEditMode.value && !form.password) {
-      error.value = 'La contraseña es obligatoria para nuevos usuarios'
+      error.value = 'La contraseña es obligatoria para nuevos usuarios (mínimo 6 caracteres).'
+      return
+    }
+    if (!isEditMode.value && form.password.length < 6) {
+      error.value = 'La contraseña debe tener al menos 6 caracteres.'
       return
     }
   } else if (currentStep.value === 2) {
     if (!form.grupo_id) {
-      error.value = 'Debe seleccionar un grupo de trabajo'
+      error.value = 'Debe seleccionar un grupo de trabajo asignado.'
       return
     }
     if (!isEditMode.value && form.modalidad === 'propietario_auto') {
       if (!form.auto_placa || !form.auto_marca || !form.auto_modelo || !form.auto_gestion) {
-        error.value = 'Por favor complete todos los datos del vehículo'
+        error.value = 'Por favor complete la placa, marca, modelo y año del vehículo.'
+        return
+      }
+      if (!form.es_el_chofer && !form.chofer_id_asignado) {
+        error.value = 'Debe seleccionar un chofer de la lista para conducir este vehículo.'
         return
       }
     }
   }
+
   currentStep.value++
 }
 
@@ -518,24 +548,67 @@ function getRolesCalculados() {
 }
 
 function getNombreGrupo(id) {
-  const g = grupos.value.find(item => item.id === id)
-  return g ? g.nombre : 'Sin grupo'
+  const g = grupos.value.find(item => item.id === Number(id))
+  return g ? `${g.nombre} — ${g.descripcion}` : 'Sin grupo asignado'
+}
+
+function getVehiculoExistenteTexto(autoId) {
+  const a = autosDisponibles.value.find(item => item.id === Number(autoId))
+  return a ? `${a.placa} — ${a.marca} ${a.modelo}` : 'Vehículo de flota'
 }
 
 async function submit() {
   submitting.value = true
   error.value = null
 
+  // Validación final de seguridad
+  if (!form.primer_nombre || !form.primer_apellido || !form.ci || !form.username) {
+    error.value = 'Faltan campos obligatorios: Verifique nombre, apellido, CI y usuario.'
+    submitting.value = false
+    currentStep.value = 1
+    return
+  }
+
+  if (!isEditMode.value && !form.password) {
+    error.value = 'La contraseña es obligatoria para nuevos registros.'
+    submitting.value = false
+    currentStep.value = 1
+    return
+  }
+
+  if (!form.grupo_id) {
+    error.value = 'Debe seleccionar un grupo de trabajo.'
+    submitting.value = false
+    currentStep.value = 2
+    return
+  }
+
   try {
+    const payload = {
+      ...form,
+      grupo_id: Number(form.grupo_id),
+      auto_gestion: Number(form.auto_gestion) || new Date().getFullYear(),
+      chofer_id_asignado: form.chofer_id_asignado ? Number(form.chofer_id_asignado) : null,
+      auto_id_existente: form.auto_id_existente ? Number(form.auto_id_existente) : null,
+      celular: form.celular ? String(form.celular).trim() : null,
+    }
+
     if (isEditMode.value) {
-      await afiliacionApi.actualizar(form.id, form)
+      await afiliacionApi.actualizar(form.id, payload)
     } else {
-      await afiliacionApi.registrar(form)
+      await afiliacionApi.registrar(payload)
     }
     emit('saved')
     close()
   } catch (err) {
-    error.value = err.response?.data?.message || 'Error al procesar el registro de afiliación'
+    if (err.response?.data?.errors) {
+      const msgs = Object.values(err.response.data.errors).flat().join(' | ')
+      error.value = msgs || err.response.data.message || 'Error de validación en los datos ingresados'
+    } else if (err.response?.data?.message) {
+      error.value = err.response.data.message
+    } else {
+      error.value = 'Error al procesar el registro de afiliación. Revise su conexión con el servidor.'
+    }
   } finally {
     submitting.value = false
   }
@@ -579,7 +652,7 @@ function close() {
   background: var(--color-bg-tertiary);
 }
 .modal-title { font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary); }
-.modal-subtitle { font-size: 0.8rem; color: var(--color-text-secondary); }
+.modal-subtitle { font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 2px; }
 .modal-close-btn { background: none; border: none; font-size: 1.5rem; color: var(--color-text-muted); cursor: pointer; }
 
 .modal-steps {
@@ -598,59 +671,163 @@ function close() {
 }
 .modal-step-item--active .modal-step-num { background: var(--color-primary-600); color: white; }
 .modal-step-item--completed .modal-step-num { background: var(--color-success); color: white; }
+.modal-step-label { font-size: 0.85rem; }
 
-.modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
-.step-title { font-size: 0.95rem; font-weight: 700; color: var(--color-primary-800); margin-bottom: 1rem; }
-
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.form-group--full { grid-column: 1 / -1; }
-.form-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 0.35rem; }
-.form-input {
-  width: 100%; padding: 0.6rem 0.8rem; background: #ffffff; border: 1px solid var(--color-border);
-  border-radius: var(--radius-md); color: var(--color-text-primary); font-size: 0.9rem;
+.modal-error {
+  margin: 1rem 1.5rem 0 1.5rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-error-bg);
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
-.form-input:focus { border-color: var(--color-primary-600); outline: none; }
-.form-divider { margin: 1.5rem 0; border: none; border-top: 1px solid var(--color-border); }
-
-.input-hint { display: block; font-size: 0.75rem; margin-top: 0.25rem; }
-.error-hint { color: #dc2626; font-weight: 600; }
-.success-hint { color: #16a34a; font-weight: 600; }
-
-.checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
-.checkbox-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; color: var(--color-text-primary); font-weight: 500; }
-
-.modalidad-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.modalidad-card {
-  padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg);
-  background: #ffffff; cursor: pointer; transition: all var(--transition-fast);
-}
-.modalidad-card:hover { border-color: var(--color-primary-400); }
-.modalidad-card--selected { border-color: var(--color-primary-600); background: var(--color-primary-50); }
-.modalidad-card__badge { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.4rem; background: #e2e8f0; border-radius: var(--radius-sm); margin-bottom: 0.5rem; color: #475569; }
-.modalidad-card h4 { font-size: 0.9rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.35rem; }
-.modalidad-card p { font-size: 0.75rem; color: var(--color-text-secondary); line-height: 1.3; }
-
-.subpanel { margin-top: 1.5rem; padding: 1.25rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
-.subpanel-title { font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 1rem; }
-
-.chofer-toggle-panel { margin-top: 1rem; padding: 0.75rem 1rem; background: #ffffff; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
-.toggle-label { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-size: 0.85rem; color: var(--color-text-primary); font-weight: 600; }
-
-.summary-box { background: var(--color-bg-tertiary); padding: 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--color-border); }
-.summary-row { display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.85rem; }
-.summary-label { color: var(--color-text-secondary); }
-.summary-value { color: var(--color-text-primary); text-align: right; font-weight: 600; }
-.summary-badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; background: var(--color-primary-600); color: white; border-radius: var(--radius-sm); margin-left: 0.25rem; }
-
-.modal-error { padding: 0.75rem 1.25rem; background: var(--color-error-bg); border-bottom: 1px solid #fecaca; color: var(--color-error); font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
 .modal-error svg { width: 18px; height: 18px; flex-shrink: 0; }
 
-.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 0.75rem; background: var(--color-bg-tertiary); }
-.btn { padding: 0.55rem 1.2rem; font-size: 0.85rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all var(--transition-fast); }
-.btn-primary { background: var(--color-primary-600); color: white; }
-.btn-primary:hover { background: var(--color-primary-700); }
-.btn-success { background: var(--color-success-bg); color: var(--color-success); border: 1px solid #bbf7d0; font-weight: 700; }
-.btn-success:hover { background: #bbf7d0; }
-.btn-secondary { background: #ffffff; color: var(--color-text-primary); border: 1px solid var(--color-border); }
-.btn-secondary:hover { background: var(--color-bg-tertiary); }
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.step-title { font-size: 1rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 1.25rem; }
+.form-divider { border: none; border-top: 1px solid var(--color-border); margin: 1.5rem 0; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+.form-group--full { grid-column: 1 / -1; }
+
+.form-group { display: flex; flex-direction: column; }
+.form-label { font-size: 0.825rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 0.35rem; }
+.form-input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+}
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.input-hint { font-size: 0.75rem; margin-top: 0.25rem; }
+.success-hint { color: var(--color-success); }
+.error-hint { color: var(--color-error); }
+
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.4rem; }
+.checkbox-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; }
+
+.modalidad-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.modalidad-card {
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast);
+  background: #ffffff;
+}
+.modalidad-card:hover { border-color: var(--color-primary-400); background: var(--color-bg-tertiary); }
+.modalidad-card--selected {
+  border-color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+.modalidad-card__badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-100);
+  color: var(--color-primary-800);
+  margin-bottom: 0.5rem;
+}
+.modalidad-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.25rem; }
+.modalidad-card p { font-size: 0.8rem; color: var(--color-text-secondary); line-height: 1.35; }
+
+.subpanel {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+.subpanel-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-text-primary); }
+
+.chofer-toggle-panel { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--color-border); }
+.toggle-label { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+.toggle-text { font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary); }
+
+.summary-box {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.45rem 0;
+  font-size: 0.88rem;
+}
+.summary-label { color: var(--color-text-secondary); font-weight: 500; }
+.summary-value { color: var(--color-text-primary); font-weight: 600; text-align: right; }
+.summary-badge {
+  background: var(--color-primary-100);
+  color: var(--color-primary-800);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: #f8fafc;
+}
+
+.btn {
+  padding: 0.65rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-primary { background-color: var(--color-primary-600); color: white; }
+.btn-primary:hover:not(:disabled) { background-color: var(--color-primary-700); }
+.btn-secondary { background-color: #e2e8f0; color: var(--color-text-primary); }
+.btn-secondary:hover:not(:disabled) { background-color: #cbd5e1; }
+.btn-success { background-color: var(--color-success); color: white; }
+.btn-success:hover:not(:disabled) { background-color: #166534; }
 </style>

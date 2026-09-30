@@ -30,8 +30,8 @@ class AfiliacionService
             $query->where('estado', filter_var($filters['estado'], FILTER_VALIDATE_BOOLEAN));
         }
 
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
+        $search = $filters['search'] ?? $filters['q'] ?? null;
+        if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('primer_nombre', 'like', "%{$search}%")
                   ->orWhere('primer_apellido', 'like', "%{$search}%")

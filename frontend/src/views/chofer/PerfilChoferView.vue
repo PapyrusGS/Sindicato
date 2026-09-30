@@ -38,7 +38,10 @@
         @click="activeTab = 'deudas'"
       >
         💳 Mis Deudas y Pagos
-        <span v-if="(historialData?.deudas?.total_deuda_pendiente || 0) > 0" class="badge badge-tesorero ml-1" style="font-size:0.7rem;">
+        <span v-if="solicitudesPendientes.length > 0" class="badge badge-danger ml-1" style="font-size:0.7rem;">
+          ⚠️ {{ solicitudesPendientes.length }}
+        </span>
+        <span v-else-if="(historialData?.deudas?.total_deuda_pendiente || 0) > 0" class="badge badge-tesorero ml-1" style="font-size:0.7rem;">
           Bs. {{ Number(historialData.deudas.total_deuda_pendiente).toFixed(2) }}
         </span>
       </button>
@@ -255,6 +258,33 @@
 
       <!-- ─── PESTAÑA 3: MIS DEUDAS Y PAGOS ──────────────────────────── -->
       <div v-else-if="activeTab === 'deudas' && historialData" class="tab-pane">
+        <!-- ALERTA DE SOLICITUDES DE CAMBIO DE PAGO PENDIENTES -->
+        <div v-if="solicitudesPendientes.length > 0" class="solicitud-alerta-card">
+          <div class="solicitud-alerta-header">
+            <span class="font-bold">🛡️ Tienes solicitudes de anulación/cambio de cobro pendientes de autorización</span>
+            <span class="badge badge-danger">Requiere tu aprobación</span>
+          </div>
+          <p class="solicitud-alerta-desc">
+            El tesorero ha indicado que registró uno o más cobros por error a tu nombre. Por control de seguridad sindical, debes autorizar o denegar el cambio:
+          </p>
+
+          <div class="solicitud-items-container">
+            <div v-for="sol in solicitudesPendientes" :key="sol.id" class="solicitud-item-card">
+              <div class="solicitud-item-info">
+                <strong>Cobro #{{ sol.pago_id }} — Monto: Bs. {{ Number(sol.pago?.monto_total || 0).toFixed(2) }}</strong>
+                <p class="solicitud-item-motivo">
+                  <span class="text-muted">Motivo Tesorero:</span> {{ sol.motivo }}
+                </p>
+                <small class="text-muted">Solicitado por: {{ sol.solicitante_persona?.nombre_completo || 'Tesorero' }}</small>
+              </div>
+
+              <button class="btn btn-warning btn-sm" @click="abrirResolverSolicitud(sol)">
+                🛡️ Revisar y Resolver
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- SECCIÓN 1: DEUDAS PENDIENTES -->
         <div class="card card-deudas" style="margin-bottom: 1.5rem;">
           <div class="card-header">
@@ -369,33 +399,60 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Resolver Solicitud -->
+    <ModalResolverSolicitud
+      v-if="modalResolverVisible"
+      :visible="modalResolverVisible"
+      :solicitud="solicitudSeleccionada"
+      @close="modalResolverVisible = false"
+      @resolved="onSolicitudResuelta"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { choferApi } from '@/api/choferApi'
+import { cobroApi } from '@/api/cobroApi'
 import AppLoader from '@/components/common/AppLoader.vue'
+import ModalResolverSolicitud from '@/components/tesoreria/ModalResolverSolicitud.vue'
 
 const activeTab = ref('perfil')
 const loading = ref(true)
 const perfilData = ref(null)
 const historialData = ref(null)
+const solicitudesPendientes = ref([])
+
+const modalResolverVisible = ref(false)
+const solicitudSeleccionada = ref(null)
 
 async function cargarDatos() {
   loading.value = true
   try {
-    const [resPerfil, resHistorial] = await Promise.all([
+    const [resPerfil, resHistorial, resSolicitudes] = await Promise.all([
       choferApi.obtenerMiPerfil(),
       choferApi.obtenerMiHistorial(),
+      cobroApi.obtenerSolicitudesPendientes().catch(() => ({ data: { data: [] } })),
     ])
     perfilData.value = resPerfil.data.data
     historialData.value = resHistorial.data.data
+    solicitudesPendientes.value = resSolicitudes.data?.data || []
   } catch (err) {
     console.error('Error al cargar datos del chofer:', err)
   } finally {
     loading.value = false
   }
+}
+
+function abrirResolverSolicitud(sol) {
+  solicitudSeleccionada.value = sol
+  modalResolverVisible.value = true
+}
+
+function onSolicitudResuelta() {
+  modalResolverVisible.value = false
+  cargarDatos()
 }
 
 function getStatusBadgeClass(estado) {
@@ -560,4 +617,53 @@ onMounted(() => {
 
 .conceptos-list { display: flex; flex-direction: column; gap: 0.2rem; }
 .concepto-tag { font-size: 0.75rem; background: var(--color-bg-tertiary); padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border); }
+
+/* Solicitudes de cambio alertas */
+.solicitud-alerta-card {
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.1);
+}
+.solicitud-alerta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  color: #92400e;
+}
+.solicitud-alerta-desc {
+  font-size: 0.85rem;
+  color: #78350f;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+.solicitud-items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.solicitud-item-card {
+  background: #ffffff;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+.solicitud-item-info {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+}
+.solicitud-item-motivo {
+  font-size: 0.8rem;
+  color: #b45309;
+  margin: 0.25rem 0;
+}
 </style>
+

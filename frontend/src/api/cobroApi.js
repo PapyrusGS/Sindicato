@@ -13,4 +13,16 @@ export const cobroApi = {
   obtenerHistorial(params = {}) {
     return api.get('/cobros/historial', { params })
   },
+  anularInmediato(pagoId) {
+    return api.post(`/cobros/${pagoId}/anular-inmediato`)
+  },
+  solicitarCambio(pagoId, data) {
+    return api.post(`/cobros/${pagoId}/solicitar-cambio`, data)
+  },
+  obtenerSolicitudesPendientes() {
+    return api.get('/solicitudes-cambio/pendientes')
+  },
+  responderSolicitud(solicitudId, data) {
+    return api.post(`/solicitudes-cambio/${solicitudId}/responder`, data)
+  },
 }

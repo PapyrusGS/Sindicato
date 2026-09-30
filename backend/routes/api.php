@@ -73,6 +73,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/estado-cuenta/{choferId}', [\App\Http\Controllers\Api\CobroController::class, 'estadoCuenta'])->name('cobros.estado-cuenta');
         Route::post('/procesar', [\App\Http\Controllers\Api\CobroController::class, 'store'])->name('cobros.procesar');
         Route::get('/historial', [\App\Http\Controllers\Api\CobroController::class, 'historial'])->name('cobros.historial');
+        Route::post('/{id}/anular-inmediato', [\App\Http\Controllers\Api\CobroController::class, 'anularInmediato'])->name('cobros.anular-inmediato');
+        Route::post('/{id}/solicitar-cambio', [\App\Http\Controllers\Api\CobroController::class, 'solicitarCambio'])->name('cobros.solicitar-cambio');
+    });
+
+    // ─── Módulo de Solicitudes de Cambio de Cobro (Chofer / Jefe / Admin / Tesorero) ───
+    Route::prefix('solicitudes-cambio')->group(function () {
+        Route::get('/pendientes', [\App\Http\Controllers\Api\CobroController::class, 'solicitudesPendientes'])->name('solicitudes.pendientes');
+        Route::post('/{id}/responder', [\App\Http\Controllers\Api\CobroController::class, 'responderSolicitud'])->name('solicitudes.responder');
+    });
+
+    // ─── Módulo de Notificaciones (Para todos los usuarios autenticados) ───
+    Route::prefix('notificaciones')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\NotificacionController::class, 'index'])->name('notificaciones.index');
+        Route::patch('/{id}/leer', [\App\Http\Controllers\Api\NotificacionController::class, 'marcarLeida'])->name('notificaciones.marcar-leida');
+        Route::patch('/marcar-todas', [\App\Http\Controllers\Api\NotificacionController::class, 'marcarTodas'])->name('notificaciones.marcar-todas');
     });
 
     // ─── Módulo de Consulta de Auditorías e Historial ────────────────
@@ -84,4 +99,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // ─── Módulo de Perfil & Vehículos del Chofer / Propietario ───────
     Route::get('/chofer/mi-perfil', [\App\Http\Controllers\Api\ChoferPerfilController::class, 'miPerfil'])->name('chofer.mi-perfil');
     Route::get('/chofer/mi-historial', [\App\Http\Controllers\Api\ChoferPerfilController::class, 'miHistorial'])->name('chofer.mi-historial');
+
+    // ─── Módulo de Rotación de Paradas (Sincronización Web y Móvil) ──
+    Route::prefix('rotacion')->group(function () {
+        Route::get('/payload', [\App\Http\Controllers\Api\RotacionController::class, 'payload'])->name('rotacion.payload');
+        Route::get('/itinerario', [\App\Http\Controllers\Api\RotacionController::class, 'itinerario'])->name('rotacion.itinerario');
+    });
 });
+
