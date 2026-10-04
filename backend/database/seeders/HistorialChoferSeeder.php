@@ -61,33 +61,33 @@ class HistorialChoferSeeder extends Seeder
         $asistenciasFechas = [
             // Semana 1
             ['dias_atras' => 28, 'hora' => '07:15:00', 'presente' => true,  'lugar' => 'Obelisco'],
-            ['dias_atras' => 27, 'hora' => '07:20:00', 'presente' => true,  'lugar' => 'Villa Fátima'],
-            ['dias_atras' => 26, 'hora' => '08:05:00', 'presente' => true,  'lugar' => 'Parada 3'],
-            ['dias_atras' => 25, 'hora' => '07:30:00', 'presente' => true,  'lugar' => 'Parada 4'],
-            ['dias_atras' => 24, 'hora' => '07:10:00', 'presente' => true,  'lugar' => 'Obelisco'],
-            ['dias_atras' => 23, 'hora' => '08:00:00', 'presente' => false, 'lugar' => 'Villa Fátima'], // Falta
+            ['dias_atras' => 27, 'hora' => '07:20:00', 'presente' => true,  'lugar' => 'Villa Dolores'],
+            ['dias_atras' => 26, 'hora' => '08:05:00', 'presente' => true,  'lugar' => 'Cruce Villa Adela'],
+            ['dias_atras' => 25, 'hora' => '07:30:00', 'presente' => true,  'lugar' => 'Satelite'],
+            ['dias_atras' => 24, 'hora' => '07:10:00', 'presente' => true,  'lugar' => 'Faro Murillo'],
+            ['dias_atras' => 23, 'hora' => '08:00:00', 'presente' => false, 'lugar' => 'Villa Dolores'], // Falta
 
             // Semana 2
-            ['dias_atras' => 20, 'hora' => '07:12:00', 'presente' => true,  'lugar' => 'Parada 3'],
-            ['dias_atras' => 19, 'hora' => '07:25:00', 'presente' => true,  'lugar' => 'Parada 4'],
-            ['dias_atras' => 18, 'hora' => '07:18:00', 'presente' => true,  'lugar' => 'Obelisco'],
-            ['dias_atras' => 17, 'hora' => '07:40:00', 'presente' => true,  'lugar' => 'Villa Fátima'],
-            ['dias_atras' => 16, 'hora' => '07:15:00', 'presente' => true,  'lugar' => 'Parada 3'],
+            ['dias_atras' => 20, 'hora' => '07:12:00', 'presente' => true,  'lugar' => 'Cruce Villa Adela'],
+            ['dias_atras' => 19, 'hora' => '07:25:00', 'presente' => true,  'lugar' => 'Satelite'],
+            ['dias_atras' => 18, 'hora' => '07:18:00', 'presente' => true,  'lugar' => 'Faro Murillo'],
+            ['dias_atras' => 17, 'hora' => '07:40:00', 'presente' => true,  'lugar' => 'Obelisco'],
+            ['dias_atras' => 16, 'hora' => '07:15:00', 'presente' => true,  'lugar' => 'Villa Dolores'],
 
             // Semana 3
-            ['dias_atras' => 13, 'hora' => '07:10:00', 'presente' => true,  'lugar' => 'Parada 4'],
-            ['dias_atras' => 12, 'hora' => '07:30:00', 'presente' => true,  'lugar' => 'Obelisco'],
-            ['dias_atras' => 11, 'hora' => '07:22:00', 'presente' => true,  'lugar' => 'Villa Fátima'],
-            ['dias_atras' => 10, 'hora' => '08:10:00', 'presente' => false, 'lugar' => 'Parada 3'], // Falta
-            ['dias_atras' => 9,  'hora' => '07:15:00', 'presente' => true,  'lugar' => 'Parada 4'],
+            ['dias_atras' => 13, 'hora' => '07:10:00', 'presente' => true,  'lugar' => 'Cruce Villa Adela'],
+            ['dias_atras' => 12, 'hora' => '07:30:00', 'presente' => true,  'lugar' => 'Satelite'],
+            ['dias_atras' => 11, 'hora' => '07:22:00', 'presente' => true,  'lugar' => 'Faro Murillo'],
+            ['dias_atras' => 10, 'hora' => '08:10:00', 'presente' => false, 'lugar' => 'Obelisco'], // Falta
+            ['dias_atras' => 9,  'hora' => '07:15:00', 'presente' => true,  'lugar' => 'Villa Dolores'],
 
             // Semana 4 (Reciente)
             ['dias_atras' => 5,  'hora' => '07:05:00', 'presente' => true,  'lugar' => 'Obelisco'],
-            ['dias_atras' => 4,  'hora' => '07:18:00', 'presente' => true,  'lugar' => 'Villa Fátima'],
-            ['dias_atras' => 3,  'hora' => '07:25:00', 'presente' => true,  'lugar' => 'Parada 3'],
-            ['dias_atras' => 2,  'hora' => '07:10:00', 'presente' => true,  'lugar' => 'Parada 4'],
-            ['dias_atras' => 1,  'hora' => '07:15:00', 'presente' => true,  'lugar' => 'Obelisco'],
-            ['dias_atras' => 0,  'hora' => '07:08:00', 'presente' => true,  'lugar' => 'Villa Fátima'],
+            ['dias_atras' => 4,  'hora' => '07:18:00', 'presente' => true,  'lugar' => 'Villa Dolores'],
+            ['dias_atras' => 3,  'hora' => '07:25:00', 'presente' => true,  'lugar' => 'Cruce Villa Adela'],
+            ['dias_atras' => 2,  'hora' => '07:10:00', 'presente' => true,  'lugar' => 'Satelite'],
+            ['dias_atras' => 1,  'hora' => '07:15:00', 'presente' => true,  'lugar' => 'Faro Murillo'],
+            ['dias_atras' => 0,  'hora' => '07:08:00', 'presente' => true,  'lugar' => 'Obelisco'],
         ];
 
         foreach ($asistenciasFechas as $item) {
@@ -312,7 +312,7 @@ class HistorialChoferSeeder extends Seeder
         $multaPendiente = Multa::create([
             'chofer_id'        => $choferJorge->id,
             'inspector_id'     => $choferGonzalo->id,
-            'lugar_id'         => $lugares['Villa Fátima']?->id ?? $paradasArray[0]->id,
+            'lugar_id'         => $lugares['Villa Dolores']?->id ?? $paradasArray[0]->id,
             'tipo_sancion'     => 'ECONOMICA',
             'motivo'           => 'Falta injustificada a turno rotativo de fin de semana',
             'sancion_detalle'  => 'No se presentó a la primera vuelta asignada a las 07:00 am.',
@@ -328,7 +328,7 @@ class HistorialChoferSeeder extends Seeder
         Multa::create([
             'chofer_id'        => $choferJorge->id,
             'inspector_id'     => $choferGonzalo->id,
-            'lugar_id'         => $lugares['Parada 3']?->id ?? $paradasArray[0]->id,
+            'lugar_id'         => $lugares['Cruce Villa Adela']?->id ?? $paradasArray[0]->id,
             'tipo_sancion'     => 'CASTIGO',
             'motivo'           => 'Limpieza deficiente de la unidad en inspección ocular',
             'sancion_detalle'  => 'Se dispone 1 jornada de lavado y acondicionamiento antes de reiniciar recorrido.',

@@ -212,7 +212,7 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label">Modelo *</label>
-                  <input v-model="form.auto_modelo" type="text" class="form-input" placeholder="ej. Hiace" @input="onNombreInput('auto_modelo')" />
+                  <input v-model="form.auto_modelo" type="text" class="form-input" placeholder="ej. Ipsum" @input="onNombreInput('auto_modelo')" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Gestión / Año *</label>
